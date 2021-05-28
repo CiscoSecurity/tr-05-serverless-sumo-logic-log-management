@@ -21,20 +21,28 @@ def client():
 @fixture(scope='session')
 def valid_jwt(client):
     def _make_jwt(
-            key='some_key',
+            accessId='some_id',
+            accessKey='some_key',
+            sumo_api_endpoint='https://api.us2.sumologic.com/api/v1/',
             jwks_host='visibility.amp.cisco.com',
             aud='http://localhost',
             kid='02B1174234C29F8EFB69911438F597FF3FFEE6B7',
-            wrong_structure=False
+            wrong_structure=False,
+            missing_jwks_host=False
     ):
         payload = {
-            'key': key,
+            'accessId': accessId,
+            'accessKey': accessKey,
+            'sumo_api_endpoint': sumo_api_endpoint,
             'jwks_host': jwks_host,
             'aud': aud,
         }
 
         if wrong_structure:
-            payload.pop('key')
+            payload.pop('accessKey')
+
+        if missing_jwks_host:
+            payload.pop('jwks_host')
 
         return jwt.encode(
             payload, client.application.rsa_private_key, algorithm='RS256',
