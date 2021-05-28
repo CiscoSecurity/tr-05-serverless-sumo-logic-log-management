@@ -1,5 +1,3 @@
-from base64 import b64encode
-
 import requests
 from requests.exceptions import SSLError
 
@@ -17,12 +15,6 @@ class SumoLogicClient:
     def _url(self):
         return self._credentials.get("sumo_api_endpoint").rstrip("/")
 
-    @property
-    def _headers(self):
-        encoded = b64encode(f'{self._credentials.get("accessId")}:'
-                            f'{self._credentials.get("accessKey")}'.encode())
-        return {'Authorization': f'Basic {encoded.decode()}'}
-
     def health(self):
         return self._request('healthEvents')
 
@@ -31,8 +23,12 @@ class SumoLogicClient:
         url = '/'.join([self._url, path.lstrip('/')])
 
         try:
-            response = requests.request(method, url, headers=self._headers,
-                                        json=body, params=params)
+            auth = (
+                self._credentials.get("accessId"),
+                self._credentials.get("accessKey")
+            )
+            response = requests.request(method, url, json=body,
+                                        params=params, auth=auth)
         except SSLError as error:
             raise SumoLogicSSLError(error)
 
