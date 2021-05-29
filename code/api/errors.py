@@ -68,9 +68,7 @@ class CriticalSumoLogicResponseError(TRFormattedError):
             HTTPStatus.INTERNAL_SERVER_ERROR,
             HTTPStatus.SERVICE_UNAVAILABLE
         )
-        status_code_map = {}
-        for status in possible_statuses:
-            status_code_map[status] = status.phrase
+        status_code_map = {status: status.phrase for status in possible_statuses}
 
         super().__init__(
             status_code_map.get(response.status_code),
