@@ -16,7 +16,7 @@ class SumoLogicClient:
         return self._credentials.get("sumo_api_endpoint").rstrip("/")
 
     def health(self):
-        return self._request('healthEvents')
+        return self._request('healthEvents', params={'limit': 1})
 
     def _request(self, path, method='GET',
                  body=None, params=None, data_extractor=lambda r: r.json()):
