@@ -69,7 +69,9 @@ class CriticalSumoLogicResponseError(TRFormattedError):
             HTTPStatus.SERVICE_UNAVAILABLE,
             HTTPStatus.BAD_REQUEST
         )
-        status_code_map = {status: status.phrase for status in possible_statuses}
+        status_code_map = {status: status.phrase
+                           for status
+                           in possible_statuses}
 
         super().__init__(
             status_code_map.get(response.status_code),
@@ -81,7 +83,8 @@ class SearchJobDidNotFinishWarning(TRFormattedError):
     def __init__(self, observable):
         super().__init__(
             'search job did not finish',
-            f'The search job did not finish in the time required for {observable}',
+            f'The search job did not finish '
+            f'in the time required for {observable}',
             type_='warning'
         )
 
@@ -90,7 +93,8 @@ class MoreMessagesAvailableWarning(TRFormattedError):
     def __init__(self, observable):
         super().__init__(
             'more messages are available',
-            f'There are more messages in Sumo Logic for {observable} than can be displayed in Threat Response.',
+            f'There are more messages in Sumo Logic for {observable}'
+            f' than can be displayed in Threat Response.',
             type_='warning'
         )
 
@@ -99,5 +103,6 @@ class SearchJobWrongStateError(TRFormattedError):
     def __init__(self, observable, job_state):
         super().__init__(
             job_state.lower(),
-            f'The job was {job_state.lower()} before results could be retrieved for {observable}'
+            f'The job was {job_state.lower()} '
+            f'before results could be retrieved for {observable}'
         )

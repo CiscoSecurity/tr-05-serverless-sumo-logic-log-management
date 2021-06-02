@@ -57,7 +57,10 @@ class SumoLogicClient:
 
         while status_response['state'] != self.DONE_GATHERING_RESULTS:
             if status_response['state'] in [self.FORCE_PAUSED, self.CANCELLED]:
-                raise SearchJobWrongStateError(observable, status_response['state'])
+                raise SearchJobWrongStateError(
+                    observable,
+                    status_response['state']
+                )
             if time.time() - start_time > self.SEARCH_JOB_MAX_TIME:
                 add_error(SearchJobDidNotFinishWarning(observable))
                 break

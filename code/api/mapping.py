@@ -14,7 +14,9 @@ class Mapping:
 
     @staticmethod
     def _count(message):
-        return int(message.get('_messagecount')) if message.get('_messagecount') else 1
+        return (
+            int(message.get('_messagecount')) if message.get('_messagecount')
+            else 1)
 
     @staticmethod
     def _start_time(message):
@@ -26,7 +28,8 @@ class Mapping:
         sighting = {
             'confidence': 'High',
             'count': self._count(message),
-            'title': 'Log message from last 30 days in Sumo Logic contains observable',
+            'title': 'Log message from last 30 days '
+                     'in Sumo Logic contains observable',
             'description': f'```\n{message.get("_raw")}\n```',
             'internal': True,
             'short_description': self._short_description(message),
