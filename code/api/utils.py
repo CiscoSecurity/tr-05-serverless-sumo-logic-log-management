@@ -2,7 +2,7 @@ import json
 from json.decoder import JSONDecodeError
 import requests
 import jwt
-from flask import request, jsonify
+from flask import request, jsonify, g
 from requests.exceptions import ConnectionError, InvalidURL
 from jwt import InvalidSignatureError, DecodeError, InvalidAudienceError
 from api.errors import AuthorizationError, InvalidArgumentError
@@ -115,9 +115,28 @@ def get_json(schema):
     return data
 
 
+def format_docs(docs):
+    return {'count': len(docs), 'docs': docs}
+
+
+def jsonify_result():
+    result = {'data': {}}
+
+    if g.get('sightings'):
+        result['data']['sightings'] = format_docs(g.sightings)
+
+    if g.get('errors'):
+        result['errors'] = g.errors
+
+        if not result.get('data'):
+            result.pop('data', None)
+
+    return jsonify(result)
+
+
 def jsonify_data(data):
     return jsonify({'data': data})
 
 
-def jsonify_errors(data):
-    return jsonify({'errors': [data]})
+def add_error(error):
+    g.errors = [*g.get('errors', []), error.json]

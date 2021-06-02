@@ -1,7 +1,6 @@
-
 from flask import Blueprint
 from functools import partial
-from api.utils import get_json, get_credentials, jsonify_data
+from api.utils import get_json, get_credentials, jsonify_result, jsonify_data
 from api.schemas import ObservableSchema, ActionFormParamsSchema
 
 respond_api = Blueprint('respond', __name__)
@@ -14,7 +13,7 @@ get_action_form_params = partial(get_json, schema=ActionFormParamsSchema())
 def respond_observables():
     _ = get_credentials()
     _ = get_observables()
-    return jsonify_data([])
+    return jsonify_result()
 
 
 @respond_api.route('/respond/trigger', methods=['POST'])
