@@ -68,7 +68,34 @@ def invalid_json_expected_payload():
     return _make_message
 
 
+@fixture(scope='function')
+def rsa_api_response():
+    def _make_mock(payload):
+        mock_response = MagicMock()
+        mock_response.json = lambda: payload
+        return mock_response
+    return _make_mock
+
+
+@fixture(scope='module')
+def sumo_logic_health_ok():
+    return sumo_logic_api_response_mock(
+        HTTPStatus.OK, payload=[{"success": True}]
+    )
+
+
 def mock_api_response(status_code=HTTPStatus.OK, payload=None):
+    mock_response = MagicMock()
+
+    mock_response.status_code = status_code
+    mock_response.ok = status_code == HTTPStatus.OK
+
+    mock_response.json = lambda: payload
+
+    return mock_response
+
+
+def sumo_logic_api_response_mock(status_code=HTTPStatus.OK, payload=None):
     mock_response = MagicMock()
 
     mock_response.status_code = status_code
