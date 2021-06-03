@@ -66,11 +66,43 @@ class CriticalSumoLogicResponseError(TRFormattedError):
             HTTPStatus.UNSUPPORTED_MEDIA_TYPE,
             HTTPStatus.TOO_MANY_REQUESTS,
             HTTPStatus.INTERNAL_SERVER_ERROR,
-            HTTPStatus.SERVICE_UNAVAILABLE
+            HTTPStatus.SERVICE_UNAVAILABLE,
+            HTTPStatus.BAD_REQUEST
         )
-        status_code_map = {status: status.phrase for status in possible_statuses}
+        status_code_map = {status: status.phrase
+                           for status
+                           in possible_statuses}
 
         super().__init__(
             status_code_map.get(response.status_code),
             f'Unexpected response from SumoLogic: {response.text}'
+        )
+
+
+class SearchJobDidNotFinishWarning(TRFormattedError):
+    def __init__(self, observable):
+        super().__init__(
+            'search job did not finish',
+            f'The search job did not finish '
+            f'in the time required for {observable}',
+            type_='warning'
+        )
+
+
+class MoreMessagesAvailableWarning(TRFormattedError):
+    def __init__(self, observable):
+        super().__init__(
+            'more messages are available',
+            f'There are more messages in Sumo Logic for {observable}'
+            f' than can be displayed in Threat Response.',
+            type_='warning'
+        )
+
+
+class SearchJobWrongStateError(TRFormattedError):
+    def __init__(self, observable, job_state):
+        super().__init__(
+            job_state.lower(),
+            f'The job was {job_state.lower()} '
+            f'before results could be retrieved for {observable}'
         )
