@@ -88,17 +88,6 @@ def api_response():
     return _make_mock
 
 
-def mock_api_response(status_code=HTTPStatus.OK, payload=None):
-    mock_response = MagicMock()
-
-    mock_response.status_code = status_code
-    mock_response.ok = status_code == HTTPStatus.OK
-
-    mock_response.json = lambda: payload
-
-    return mock_response
-
-
 @fixture(scope='module')
 def search_id():
     return '347A844D53240C86'
