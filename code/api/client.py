@@ -7,6 +7,7 @@ from api.errors import (
     SumoLogicSSLError,
     CriticalSumoLogicResponseError,
     SearchJobWrongStateError,
+    SearchJobNotStartedError,
     SearchJobDidNotFinishWarning,
     MoreMessagesAvailableWarning
 )
@@ -17,6 +18,7 @@ class SumoLogicClient:
     DONE_GATHERING_RESULTS = 'DONE GATHERING RESULTS'
     FORCE_PAUSED = 'FORCE PAUSED'
     CANCELLED = 'CANCELLED'
+    NOT_STARTED = 'NOT STARTED'
     SEARCH_JOB_MAX_TIME = 50
     REQUEST_DELAY = 5
     CTR_ENTITIES_LIMIT = 100
@@ -62,6 +64,10 @@ class SumoLogicClient:
                     status_response['state']
                 )
             if time.time() - start_time > self.SEARCH_JOB_MAX_TIME:
+                if status_response['state'] == self.NOT_STARTED:
+                    raise SearchJobNotStartedError(
+                        observable,
+                        status_response['state'])
                 add_error(SearchJobDidNotFinishWarning(observable))
                 break
             status_response = self._check_status(search_id)

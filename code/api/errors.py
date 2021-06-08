@@ -106,3 +106,12 @@ class SearchJobWrongStateError(TRFormattedError):
             f'The job was {job_state.lower()} '
             f'before results could be retrieved for {observable}'
         )
+
+
+class SearchJobNotStartedError(TRFormattedError):
+    def __init__(self, observable, job_state):
+        super().__init__(
+            job_state.lower(),
+            f'The job was {job_state.lower()} '
+            f'within the required time for {observable}',
+        )
