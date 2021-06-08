@@ -15,7 +15,10 @@ from api.utils import (
     WRONG_AUDIENCE,
     KID_NOT_FOUND,
     JWKS_HOST_MISSING,
-    WRONG_JWKS_HOST)
+    WRONG_JWKS_HOST,
+    WRONG_JWT_STRUCTURE,
+    WRONG_AUTH_TYPE,
+    NO_AUTH_HEADER)
 
 
 def routes():
@@ -59,7 +62,7 @@ def test_call_with_authorization_header_failure(
 
     assert response.status_code == HTTPStatus.OK
     assert response.json == authorization_errors_expected_payload(
-        'Authorization header is missing')
+        NO_AUTH_HEADER)
 
 
 def test_call_with_wrong_authorization_type(
@@ -71,7 +74,7 @@ def test_call_with_wrong_authorization_type(
 
     assert response.status_code == HTTPStatus.OK
     assert response.json == authorization_errors_expected_payload(
-        'Wrong authorization type')
+        WRONG_AUTH_TYPE)
 
 
 def test_call_with_wrong_jwt_structure(
@@ -82,7 +85,7 @@ def test_call_with_wrong_jwt_structure(
 
     assert response.status_code == HTTPStatus.OK
     assert response.json == authorization_errors_expected_payload(
-        'Wrong JWT structure')
+        WRONG_JWT_STRUCTURE)
 
 
 @patch('requests.get')
