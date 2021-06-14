@@ -1,16 +1,16 @@
 import time
 
 import requests
-from requests.exceptions import SSLError
+from requests.exceptions import SSLError, ConnectionError, MissingSchema
 
 from api.errors import (
     SumoLogicSSLError,
+    SumoLogicConnectionError,
     CriticalSumoLogicResponseError,
     SearchJobWrongStateError,
     SearchJobNotStartedError,
     SearchJobDidNotFinishWarning,
-    MoreMessagesAvailableWarning
-)
+    MoreMessagesAvailableWarning)
 from api.utils import add_error
 
 
@@ -28,7 +28,7 @@ class SumoLogicClient:
 
     @property
     def _url(self):
-        return self._credentials.get("sumo_api_endpoint").rstrip("/")
+        return self._credentials.get('sumo_api_endpoint').rstrip('/')
 
     def health(self):
         return self._request(path='healthEvents', params={'limit': 1})
@@ -39,13 +39,15 @@ class SumoLogicClient:
 
         try:
             auth = (
-                self._credentials.get("accessId"),
-                self._credentials.get("accessKey")
+                self._credentials.get('access_id'),
+                self._credentials.get('access_key')
             )
             response = requests.request(method, url, json=body,
                                         params=params, auth=auth)
         except SSLError as error:
             raise SumoLogicSSLError(error)
+        except (ConnectionError, MissingSchema):
+            raise SumoLogicConnectionError(self._url)
 
         if response.ok:
             return data_extractor(response)

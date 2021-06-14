@@ -88,10 +88,10 @@ def get_credentials():
         key = get_public_key(jwks_host, token)
         aud = request.url_root
         payload = jwt.decode(
-            token, key=key, algorithms=['RS256'], audience=[aud.rstrip('/')]
-        )
-        assert payload.get('accessId')
-        assert payload.get('accessKey')
+            token, key=key, algorithms=['RS256'], audience=[aud.rstrip('/')])
+        assert 'sumo_api_endpoint' in payload
+        assert 'access_id' in payload
+        assert 'access_key' in payload
         return payload
     except tuple(expected_errors) as error:
         message = expected_errors[error.__class__]

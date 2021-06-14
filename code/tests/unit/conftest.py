@@ -39,15 +39,15 @@ def valid_jwt(client):
             missing_jwks_host=False
     ):
         payload = {
-            'accessId': access_id,
-            'accessKey': access_key,
+            'access_id': access_id,
+            'access_key': access_key,
             'sumo_api_endpoint': sumo_api_endpoint,
             'jwks_host': jwks_host,
             'aud': aud,
         }
 
         if wrong_structure:
-            payload.pop('accessKey')
+            payload.pop('access_key')
 
         if missing_jwks_host:
             payload.pop('jwks_host')
@@ -99,7 +99,7 @@ def response_payload_for_create_job_request(search_id):
         'id': search_id,
         'link': {
             'rel': 'self',
-            'href': f'https://api.us2.sumologic.com/api/v1'
+            'href': 'https://api.us2.sumologic.com/api/v1'
                     f'/search/jobs/{search_id}'
         }
     }
@@ -168,7 +168,7 @@ def general_response_payload_for_sumo_api_request(
             'id': search_id,
             'link': {
                 'rel': 'self',
-                'href': f'https://api.us2.sumologic.com/api/v1/search/jobs'
+                'href': 'https://api.us2.sumologic.com/api/v1/search/jobs'
                         f'/{search_id}'
             },
             'state': state,
@@ -197,7 +197,7 @@ def expected_relay_response(sighting_base_payload):
                 {
                     'code': state.lower(),
                     'message': f'The job was {state.lower()} before results '
-                               f'could be retrieved for cisco.com',
+                               'could be retrieved for cisco.com',
                     'type': 'fatal'
                 }
             )
@@ -207,7 +207,7 @@ def expected_relay_response(sighting_base_payload):
                 {
                     'code': state.lower(),
                     'message': f'The job was {state.lower()} within the '
-                               f'required time for cisco.com',
+                               'required time for cisco.com',
                     'type': 'fatal'
                 }
             )
@@ -364,6 +364,23 @@ def ssl_error_expected_relay_response():
                     'message':
                         'Unable to verify SSL certificate: '
                         'Self signed certificate',
+                    'type': 'fatal'
+                }
+            ]
+    }
+
+
+@fixture(scope='module')
+def connection_error_expected_relay_response():
+    return {
+        'errors':
+            [
+                {
+                    'code': 'connection error',
+                    'message':
+                        'Unable to connect to Sumo Logic, validate the '
+                        'configured API endpoint: '
+                        'https://api.us2.sumologic.com/api/v1',
                     'type': 'fatal'
                 }
             ]

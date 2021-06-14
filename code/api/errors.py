@@ -3,6 +3,7 @@ from http import HTTPStatus
 INVALID_ARGUMENT = 'invalid argument'
 UNKNOWN = 'unknown'
 AUTH_ERROR = 'authorization error'
+CONNECTION_ERROR = 'connection error'
 
 
 class TRFormattedError(Exception):
@@ -53,6 +54,15 @@ class SumoLogicSSLError(TRFormattedError):
         )
 
 
+class SumoLogicConnectionError(TRFormattedError):
+    def __init__(self, url):
+        super().__init__(
+            CONNECTION_ERROR,
+            'Unable to connect to Sumo Logic,'
+            f' validate the configured API endpoint: {url}'
+        )
+
+
 class CriticalSumoLogicResponseError(TRFormattedError):
     """
     https://api.us2.sumologic.com/docs/#section/Getting-Started/Status-Codes
@@ -83,7 +93,7 @@ class SearchJobDidNotFinishWarning(TRFormattedError):
     def __init__(self, observable):
         super().__init__(
             'search job did not finish',
-            f'The search job did not finish '
+            'The search job did not finish '
             f'in the time required for {observable}',
             type_='warning'
         )
@@ -94,7 +104,7 @@ class MoreMessagesAvailableWarning(TRFormattedError):
         super().__init__(
             'more messages are available',
             f'There are more messages in Sumo Logic for {observable}'
-            f' than can be displayed in Threat Response.',
+            ' than can be displayed in Threat Response.',
             type_='warning'
         )
 
