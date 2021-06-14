@@ -99,7 +99,7 @@ def response_payload_for_create_job_request(search_id):
         'id': search_id,
         'link': {
             'rel': 'self',
-            'href': f'https://api.us2.sumologic.com/api/v1'
+            'href': 'https://api.us2.sumologic.com/api/v1'
                     f'/search/jobs/{search_id}'
         }
     }
@@ -168,7 +168,7 @@ def general_response_payload_for_sumo_api_request(
             'id': search_id,
             'link': {
                 'rel': 'self',
-                'href': f'https://api.us2.sumologic.com/api/v1/search/jobs'
+                'href': 'https://api.us2.sumologic.com/api/v1/search/jobs'
                         f'/{search_id}'
             },
             'state': state,
@@ -197,7 +197,7 @@ def expected_relay_response(sighting_base_payload):
                 {
                     'code': state.lower(),
                     'message': f'The job was {state.lower()} before results '
-                               f'could be retrieved for cisco.com',
+                               'could be retrieved for cisco.com',
                     'type': 'fatal'
                 }
             )
@@ -207,7 +207,7 @@ def expected_relay_response(sighting_base_payload):
                 {
                     'code': state.lower(),
                     'message': f'The job was {state.lower()} within the '
-                               f'required time for cisco.com',
+                               'required time for cisco.com',
                     'type': 'fatal'
                 }
             )

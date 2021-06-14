@@ -58,7 +58,7 @@ class SumoLogicConnectionError(TRFormattedError):
     def __init__(self, url):
         super().__init__(
             CONNECTION_ERROR,
-            f'Unable to connect to Sumo Logic,'
+            'Unable to connect to Sumo Logic,'
             f' validate the configured API endpoint: {url}'
         )
 
@@ -93,7 +93,7 @@ class SearchJobDidNotFinishWarning(TRFormattedError):
     def __init__(self, observable):
         super().__init__(
             'search job did not finish',
-            f'The search job did not finish '
+            'The search job did not finish '
             f'in the time required for {observable}',
             type_='warning'
         )
@@ -104,7 +104,7 @@ class MoreMessagesAvailableWarning(TRFormattedError):
         super().__init__(
             'more messages are available',
             f'There are more messages in Sumo Logic for {observable}'
-            f' than can be displayed in Threat Response.',
+            ' than can be displayed in Threat Response.',
             type_='warning'
         )
 

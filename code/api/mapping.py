@@ -10,7 +10,7 @@ class Mapping:
     def _short_description(message):
         return f'{message.get("_collector")} received a log from ' \
                f'{message.get("_source")} - {message.get("_sourcename")} ' \
-               f'containing the observable'
+               'containing the observable'
 
     @staticmethod
     def _count(message):
