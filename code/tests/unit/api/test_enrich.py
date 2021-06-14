@@ -32,6 +32,7 @@ def invalid_json_value():
 def test_enrich_call_with_valid_jwt_but_invalid_json_value(
         mock_get, api_response, client, route, valid_jwt,
         invalid_json_value, invalid_json_expected_payload):
+
     mock_get.return_value = api_response(EXPECTED_RESPONSE_OF_JWKS_ENDPOINT)
     response = client.post(route, headers=get_headers(valid_jwt()),
                            json=invalid_json_value)
@@ -147,6 +148,7 @@ def test_enrich_call_with_ssl_error(mock_get, mock_request, api_response,
                                     mock_exception_for_ssl_error,
                                     client, route, valid_jwt, valid_json,
                                     ssl_error_expected_relay_response):
+
     mock_get.return_value = api_response(EXPECTED_RESPONSE_OF_JWKS_ENDPOINT)
     mock_request.side_effect = SSLError(mock_exception_for_ssl_error)
 
@@ -158,9 +160,11 @@ def test_enrich_call_with_ssl_error(mock_get, mock_request, api_response,
 
 @patch('requests.request')
 @patch('requests.get')
-def test_enrich_call_with_connection_error(mock_get, mock_request, api_response,
-                                           client, route, valid_jwt, valid_json,
-                                           connection_error_expected_relay_response):
+def test_enrich_call_with_connection_error(
+        mock_get, mock_request, api_response,
+        client, route, valid_jwt, valid_json,
+        connection_error_expected_relay_response):
+
     mock_get.return_value = api_response(EXPECTED_RESPONSE_OF_JWKS_ENDPOINT)
     for error in (ConnectionError, MissingSchema):
         mock_request.side_effect = error()
