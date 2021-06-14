@@ -1,6 +1,6 @@
 from functools import partial
 
-from flask import Blueprint, g
+from flask import Blueprint, g, current_app
 
 from api.schemas import ObservableSchema
 from api.utils import get_json, get_credentials, jsonify_result
@@ -18,12 +18,17 @@ def observe_observables():
     observables = get_observables()
 
     g.sightings = []
+    g.judgements = []
 
-    client = SumoLogicClient(credentials)
+    sighting = current_app.config['SIGHTING']
+    judgment = current_app.config['JUDGMENT_VERDICT']
+
+    sighting_client = SumoLogicClient(credentials, sighting)
+    judgment_client = SumoLogicClient(credentials, judgment)
 
     for observable in observables:
         mapping = Mapping(observable)
-        messages = client.get_data(observable['value'])
+        messages = sighting_client.get_data(observable['value'])
 
         for message in messages:
             sighting = mapping.extract_sighting(message['map'])

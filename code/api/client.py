@@ -20,11 +20,14 @@ class SumoLogicClient:
     CANCELLED = 'CANCELLED'
     NOT_STARTED = 'NOT STARTED'
     SEARCH_JOB_MAX_TIME = 50
-    REQUEST_DELAY = 5
     CTR_ENTITIES_LIMIT = 100
 
-    def __init__(self, credentials):
+    def __init__(self, credentials, query_params):
         self._credentials = credentials
+        self._search_query = query_params['search_query']
+        self._search_time_range = query_params['search_time_range']
+        self._check_request_delay = query_params['check_request_delay']
+        self._first_check_request_delay = query_params['first_check_request_delay']
 
     @property
     def _url(self):
@@ -57,14 +60,14 @@ class SumoLogicClient:
     def get_data(self, observable):
         search_id = self._create_search(observable)
         status_response = self._check_status(search_id)
+        time.sleep(self._first_check_request_delay)
         start_time = time.time()
 
         while status_response['state'] != self.DONE_GATHERING_RESULTS:
             if status_response['state'] in [self.FORCE_PAUSED, self.CANCELLED]:
                 raise SearchJobWrongStateError(
                     observable,
-                    status_response['state']
-                )
+                    status_response['state'])
             if time.time() - start_time > self.SEARCH_JOB_MAX_TIME:
                 if status_response['state'] == self.NOT_STARTED:
                     raise SearchJobNotStartedError(
@@ -73,7 +76,7 @@ class SumoLogicClient:
                 add_error(SearchJobDidNotFinishWarning(observable))
                 break
             status_response = self._check_status(search_id)
-            time.sleep(self.REQUEST_DELAY)
+            time.sleep(self._check_request_delay)
 
         if status_response['messageCount'] > self.CTR_ENTITIES_LIMIT:
             add_error(MoreMessagesAvailableWarning(observable))
@@ -83,11 +86,10 @@ class SumoLogicClient:
 
     def _create_search(self, observable):
         path = 'search/jobs'
-        thirty_days_ms = 30 * 24 * 60 * 60 * 10**3
         current_time = int(time.time()) * 10**3
         payload = {
-            'query': f'"{observable}" | limit 101',
-            'from': current_time - thirty_days_ms,
+            'query': self._search_query.format(observable),
+            'from': current_time - self._search_time_range,
             'to': current_time
         }
         search_result = self._request(path=path, method='POST', body=payload)
@@ -110,3 +112,11 @@ class SumoLogicClient:
     def _delete_job(self, search_id):
         path = f'search/jobs/{search_id}'
         self._request(path=path, method='DELETE')
+
+
+class Sighting(SumoLogicClient):
+    pass
+
+
+class JudgementVerdict(SumoLogicClient):
+    pass
