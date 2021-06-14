@@ -39,15 +39,15 @@ def valid_jwt(client):
             missing_jwks_host=False
     ):
         payload = {
-            'accessId': access_id,
-            'accessKey': access_key,
+            'access_id': access_id,
+            'access_key': access_key,
             'sumo_api_endpoint': sumo_api_endpoint,
             'jwks_host': jwks_host,
             'aud': aud,
         }
 
         if wrong_structure:
-            payload.pop('accessKey')
+            payload.pop('access_key')
 
         if missing_jwks_host:
             payload.pop('jwks_host')
@@ -364,6 +364,23 @@ def ssl_error_expected_relay_response():
                     'message':
                         'Unable to verify SSL certificate: '
                         'Self signed certificate',
+                    'type': 'fatal'
+                }
+            ]
+    }
+
+
+@fixture(scope='module')
+def connection_error_expected_relay_response():
+    return {
+        'errors':
+            [
+                {
+                    'code': 'connection error',
+                    'message':
+                        'Unable to connect to Sumo Logic, validate the '
+                        'configured API endpoint: '
+                        'https://api.us2.sumologic.com/api/v1',
                     'type': 'fatal'
                 }
             ]

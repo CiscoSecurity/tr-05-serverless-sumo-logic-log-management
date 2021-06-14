@@ -3,6 +3,7 @@ from http import HTTPStatus
 INVALID_ARGUMENT = 'invalid argument'
 UNKNOWN = 'unknown'
 AUTH_ERROR = 'authorization error'
+CONNECTION_ERROR = 'connection error'
 
 
 class TRFormattedError(Exception):
@@ -50,6 +51,15 @@ class SumoLogicSSLError(TRFormattedError):
         super().__init__(
             UNKNOWN,
             f'Unable to verify SSL certificate: {message}'
+        )
+
+
+class SumoLogicConnectionError(TRFormattedError):
+    def __init__(self, url):
+        super().__init__(
+            CONNECTION_ERROR,
+            f'Unable to connect to Sumo Logic,'
+            f' validate the configured API endpoint: {url}'
         )
 
 
