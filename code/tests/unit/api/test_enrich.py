@@ -67,6 +67,12 @@ def test_enrich_call_status_done(mock_get, mock_request, api_response,
             DONE_GATHERING_RESULTS,
             messages_count)),
         api_response(response_payload_for_get_messages_request),
+        api_response(),
+        api_response(response_payload_for_create_job_request),
+        api_response(response_payload_for_check_status_request(
+            DONE_GATHERING_RESULTS,
+            1)),
+        api_response(response_payload_for_get_messages_request),
         api_response()
     ]
     response = client.post(route, headers=get_headers(valid_jwt()),

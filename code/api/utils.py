@@ -3,7 +3,10 @@ from json.decoder import JSONDecodeError
 import requests
 from requests.exceptions import ConnectionError, InvalidURL
 import jwt
-from jwt import InvalidSignatureError, DecodeError, InvalidAudienceError
+from jwt import (InvalidSignatureError,
+                 DecodeError,
+                 InvalidAudienceError,
+                 MissingRequiredClaimError)
 from flask import request, jsonify, g, current_app
 
 from api.errors import AuthorizationError, InvalidArgumentError
@@ -78,7 +81,8 @@ def get_credentials():
         InvalidSignatureError: WRONG_KEY,
         DecodeError: WRONG_JWT_STRUCTURE,
         InvalidAudienceError: WRONG_AUDIENCE,
-        TypeError: KID_NOT_FOUND
+        TypeError: KID_NOT_FOUND,
+        MissingRequiredClaimError: WRONG_PAYLOAD_STRUCTURE
     }
     token = get_auth_token()
     try:
