@@ -159,22 +159,9 @@ class Mapping:
 
     @staticmethod
     def _valid_time(start_time, observable_type):
-        time_map = {
-            'domain': start_time + 30 * 24 * 60 * 60,
-            'email': start_time + 30 * 24 * 60 * 60,
-            'file_name': '2525-01-01T00:00:00.000Z',
-            'file_path': '2525-01-01T00:00:00.000Z',
-            'md5': '2525-01-01T00:00:00.000Z',
-            'sha1': '2525-01-01T00:00:00.000Z',
-            'sha256': '2525-01-01T00:00:00.000Z',
-            'ip': start_time + 30 * 24 * 60 * 60,
-            'ipv6': start_time + 30 * 24 * 60 * 60,
-            'mutex': '2525-01-01T00:00:00.000Z',
-            'url': start_time + 30 * 24 * 60 * 60,
-            'user_agent': '2525-01-01T00:00:00.000Z',
-            'certificate_serial': '2525-01-01T00:00:00.000Z',
-        }
-        return time_map[observable_type]
+        if observable_type in ['domain', 'email', 'ip', 'ipv6', 'url']:
+            return start_time + 30 * 24 * 60 * 60
+        return '2525-01-01T00:00:00.000Z'
 
     @staticmethod
     def _external_references(cs_data):
