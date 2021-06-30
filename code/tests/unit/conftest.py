@@ -169,7 +169,8 @@ def response_payload_for_get_messages_request():
                         '_sourcename': 'local use 4  (local4)',
                         '_receipttime': '1619720153842',
                         '_sourcecategory': 'syslog',
-                        'raw': '{"last_updated":1619529860,"reports":[],'
+                        'raw': '{"last_updated":1619529860,"reports":'
+                               '["CSIT-17109","CSIR-18011"],'
                                '"malicious_confidence":"high"}'
                     }
             }
@@ -293,7 +294,8 @@ def sighting_base_payload():
                                          '10.100.20.1',
                                          '710003',
                                          '{"last_updated":1619529860,'
-                                         '"reports":[],"malicious_'
+                                         '"reports":["CSIT-17109",'
+                                         '"CSIR-18011"],"malicious_'
                                          'confidence":"high"}']]},
                       'description': '```\n<163>%ASA-3-710003: TCP access '
                                      'denied by ACL '
@@ -329,7 +331,18 @@ def judgement_base_payload():
             'docs': [{'confidence': 'High',
                       'disposition': 2,
                       'disposition_name': 'Malicious',
-                      'external_references': [],
+                      'external_references': [{'description': 'Crowd'
+                                                              'Strike Inte'
+                                                              'lligence '
+                                                              'Report',
+                                               'external_id': 'CSIT-17109',
+                                               'source_name': 'CrowdStrike'},
+                                              {'description': 'Crowd'
+                                                              'Strike Intel'
+                                                              'ligence '
+                                                              'Report',
+                                               'external_id': 'CSIR-18011',
+                                               'source_name': 'CrowdStrike'}],
                       'id': 'transient:judgement-43c16a5e-cb1c-5bca-a26f'
                             '-4f9ec202a7ee',
                       'observables': [{'type': 'domain',
