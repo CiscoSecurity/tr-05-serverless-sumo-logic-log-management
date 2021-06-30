@@ -1,4 +1,5 @@
 import time
+from abc import ABC, abstractmethod
 
 import requests
 from requests.exceptions import SSLError, ConnectionError, MissingSchema
@@ -14,7 +15,7 @@ from api.errors import (
 from api.utils import add_error
 
 
-class SumoLogicClient:
+class SumoLogicClient(ABC):
     DONE_GATHERING_RESULTS = 'DONE GATHERING RESULTS'
     FORCE_PAUSED = 'FORCE PAUSED'
     CANCELLED = 'CANCELLED'
@@ -22,16 +23,37 @@ class SumoLogicClient:
     SEARCH_JOB_MAX_TIME = 50
     CTR_ENTITIES_LIMIT = 100
 
-    def __init__(self, credentials, query_params):
+    def __init__(self, credentials):
         self._credentials = credentials
-        self._search_query = query_params['search_query']
-        self._search_time_range = query_params['search_time_range']
-        self._check_request_delay = query_params['check_request_delay']
-        self._first_check_request_delay = query_params['first_check_request_delay']
 
     @property
     def _url(self):
         return self._credentials.get('sumo_api_endpoint').rstrip('/')
+
+    @property
+    def _auth(self):
+        return (self._credentials.get('access_id'),
+                self._credentials.get('access_key'))
+
+    @property
+    @abstractmethod
+    def _search_query(self):
+        """Returns the query search."""
+
+    @property
+    @abstractmethod
+    def _search_time_range(self):
+        """Returns the time range for search."""
+
+    @property
+    @abstractmethod
+    def _check_request_delay(self):
+        """Returns the delay between status checks in seconds."""
+
+    @property
+    @abstractmethod
+    def _first_check_request_delay(self):
+        """Returns the delay between first status checks in seconds."""
 
     def health(self):
         return self._request(path='healthEvents', params={'limit': 1})
@@ -41,12 +63,8 @@ class SumoLogicClient:
         url = '/'.join([self._url, path.lstrip('/')])
 
         try:
-            auth = (
-                self._credentials.get('access_id'),
-                self._credentials.get('access_key')
-            )
             response = requests.request(method, url, json=body,
-                                        params=params, auth=auth)
+                                        params=params, auth=self._auth)
         except SSLError as error:
             raise SumoLogicSSLError(error)
         except (ConnectionError, MissingSchema):
@@ -89,8 +107,10 @@ class SumoLogicClient:
         current_time = int(time.time()) * 10**3
         payload = {
             'query': self._search_query.format(observable),
-            'from': current_time - self._search_time_range,
-            'to': current_time
+            # 'from': current_time - self._search_time_range,
+            # 'to': current_time
+            'from': 1617261824000,
+            'to': 1622532224000
         }
         search_result = self._request(path=path, method='POST', body=payload)
         return search_result.get('id')
@@ -115,8 +135,36 @@ class SumoLogicClient:
 
 
 class Sighting(SumoLogicClient):
-    pass
+    @property
+    def _search_query(self):
+        return '"{}" | limit 101'
+
+    @property
+    def _search_time_range(self):
+        return 30 * 24 * 60 * 60 * 10**3  # 30 days in milliseconds
+
+    @property
+    def _check_request_delay(self):
+        return 3
+
+    @property
+    def _first_check_request_delay(self):
+        return 0  # do not need to delay first request
 
 
 class JudgementVerdict(SumoLogicClient):
-    pass
+    @property
+    def _search_query(self):
+        return '| limit 1 | "{}" as observable | lookup raw from sumo://threat/cs on threat=observable'
+
+    @property
+    def _search_time_range(self):
+        return 15 * 60 * 10**3  # 15 minutes in milliseconds
+
+    @property
+    def _check_request_delay(self):
+        return 5
+
+    @property
+    def _first_check_request_delay(self):
+        return 1

@@ -1,11 +1,11 @@
 from functools import partial
 
-from flask import Blueprint, g, current_app
+from flask import Blueprint, g
 
 from api.schemas import ObservableSchema
 from api.utils import get_json, get_credentials, jsonify_result
 from api.mapping import Mapping
-from api.client import SumoLogicClient
+from api.client import Sighting, JudgementVerdict
 
 enrich_api = Blueprint('enrich', __name__)
 
@@ -20,11 +20,8 @@ def observe_observables():
     g.sightings = []
     g.judgements = []
 
-    sighting = current_app.config['SIGHTING']
-    judgment = current_app.config['JUDGMENT_VERDICT']
-
-    sighting_client = SumoLogicClient(credentials, sighting)
-    judgment_client = SumoLogicClient(credentials, judgment)
+    sighting_client = Sighting(credentials)
+    judgment_client = JudgementVerdict(credentials)
 
     for observable in observables:
         mapping = Mapping(observable)
@@ -33,5 +30,11 @@ def observe_observables():
         for message in messages:
             sighting = mapping.extract_sighting(message['map'])
             g.sightings.append(sighting)
+
+        judgment_messages = judgment_client.get_data(observable['value'])
+        judgment_message = judgment_messages[0]['map'] if judgment_messages else {}
+        if judgment_message.get('raw'):
+            judgment = mapping.extract_judgement(judgment_message['raw'])
+            g.judgements.append(judgment)
 
     return jsonify_result()
