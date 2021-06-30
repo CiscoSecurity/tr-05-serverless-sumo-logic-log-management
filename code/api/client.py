@@ -1,5 +1,5 @@
 import time
-from abc import ABC, abstractmethod
+import json
 
 import requests
 from requests.exceptions import SSLError, ConnectionError, MissingSchema
@@ -15,7 +15,7 @@ from api.errors import (
 from api.utils import add_error
 
 
-class SumoLogicClient(ABC):
+class SumoLogicClient:
     DONE_GATHERING_RESULTS = 'DONE GATHERING RESULTS'
     FORCE_PAUSED = 'FORCE PAUSED'
     CANCELLED = 'CANCELLED'
@@ -34,26 +34,6 @@ class SumoLogicClient(ABC):
     def _auth(self):
         return (self._credentials.get('access_id'),
                 self._credentials.get('access_key'))
-
-    @property
-    @abstractmethod
-    def _search_query(self):
-        """Returns the query search."""
-
-    @property
-    @abstractmethod
-    def _search_time_range(self):
-        """Returns the time range for search."""
-
-    @property
-    @abstractmethod
-    def _check_request_delay(self):
-        """Returns the delay between status checks in seconds."""
-
-    @property
-    @abstractmethod
-    def _first_check_request_delay(self):
-        """Returns the delay between first status checks in seconds."""
 
     def health(self):
         return self._request(path='healthEvents', params={'limit': 1})
@@ -75,10 +55,43 @@ class SumoLogicClient(ABC):
 
         raise CriticalSumoLogicResponseError(response)
 
-    def get_data(self, observable):
-        search_id = self._create_search(observable)
+    def get_messages(self, observable):
+        search_type = 'Sumo Logic'
+        search_query = f'"{observable}" | limit 101'
+        # 30 days in milliseconds
+        search_time_range = 30 * 24 * 60 * 60 * 10**3
+        first_check_request_delay = 0
+        check_request_delay = 3
+        messages = self._get_data(observable, search_type,
+                                  search_query, search_time_range,
+                                  first_check_request_delay,
+                                  check_request_delay)
+        return messages
+
+    def get_crowd_strike_data(self, observable):
+        search_type = 'Crowd Strike'
+        search_query = f'| limit 1 | "{observable}" as observable | lookup ' \
+                       'raw from sumo://threat/cs on threat=observable'
+        # 15 minutes in milliseconds
+        search_time_range = 15 * 60 * 10**3
+        first_check_request_delay = 1
+        check_request_delay = 5
+        messages = self._get_data(observable, search_type,
+                                  search_query, search_time_range,
+                                  first_check_request_delay,
+                                  check_request_delay)
+        message = messages[0]['map'] if messages else {}
+        if message.get('raw'):
+            raw = message['raw']
+            crowd_strike_data = json.loads(raw)
+            return crowd_strike_data
+
+    def _get_data(self, observable, search_type, search_query,
+                  search_time_range, first_check_request_delay,
+                  check_request_delay):
+        search_id = self._create_search(search_query, search_time_range)
         status_response = self._check_status(search_id)
-        time.sleep(self._first_check_request_delay)
+        time.sleep(first_check_request_delay)
         start_time = time.time()
 
         while status_response['state'] != self.DONE_GATHERING_RESULTS:
@@ -91,10 +104,11 @@ class SumoLogicClient(ABC):
                     raise SearchJobNotStartedError(
                         observable,
                         status_response['state'])
-                add_error(SearchJobDidNotFinishWarning(observable))
+                add_error(SearchJobDidNotFinishWarning(observable,
+                                                       search_type))
                 break
             status_response = self._check_status(search_id)
-            time.sleep(self._check_request_delay)
+            time.sleep(check_request_delay)
 
         if status_response['messageCount'] > self.CTR_ENTITIES_LIMIT:
             add_error(MoreMessagesAvailableWarning(observable))
@@ -102,15 +116,15 @@ class SumoLogicClient(ABC):
         self._delete_job(search_id)
         return messages
 
-    def _create_search(self, observable):
+    def _create_search(self, search_query, search_time_range):
         path = 'search/jobs'
         current_time = int(time.time()) * 10**3
         payload = {
-            'query': self._search_query.format(observable),
-            # 'from': current_time - self._search_time_range,
-            # 'to': current_time
-            'from': 1617261824000,
-            'to': 1622532224000
+            'query': search_query,
+            'from': current_time - search_time_range,
+            'to': current_time
+            # 'from': 1617261824000,
+            # 'to': 1622532224000
         }
         search_result = self._request(path=path, method='POST', body=payload)
         return search_result.get('id')
@@ -132,39 +146,3 @@ class SumoLogicClient(ABC):
     def _delete_job(self, search_id):
         path = f'search/jobs/{search_id}'
         self._request(path=path, method='DELETE')
-
-
-class Sighting(SumoLogicClient):
-    @property
-    def _search_query(self):
-        return '"{}" | limit 101'
-
-    @property
-    def _search_time_range(self):
-        return 30 * 24 * 60 * 60 * 10**3  # 30 days in milliseconds
-
-    @property
-    def _check_request_delay(self):
-        return 3
-
-    @property
-    def _first_check_request_delay(self):
-        return 0  # do not need to delay first request
-
-
-class JudgementVerdict(SumoLogicClient):
-    @property
-    def _search_query(self):
-        return '| limit 1 | "{}" as observable | lookup raw from sumo://threat/cs on threat=observable'
-
-    @property
-    def _search_time_range(self):
-        return 15 * 60 * 10**3  # 15 minutes in milliseconds
-
-    @property
-    def _check_request_delay(self):
-        return 5
-
-    @property
-    def _first_check_request_delay(self):
-        return 1

@@ -1,6 +1,5 @@
 from datetime import datetime, timezone
-from uuid import uuid4
-import json
+from uuid import uuid5, NAMESPACE_X500
 
 from flask import current_app
 
@@ -90,22 +89,23 @@ class Mapping:
         sighting = self._sighting(message, data_table)
         return sighting
 
-    def _judgement(self, cs_response):
+    def _judgement(self, cs_data):
         judgement = {
-            **self._disposition(cs_response),
+            **self._disposition(cs_data),
             'confidence': 'High',
-            'id': f'transient:judgement-{uuid4()}',
+            'id': self._transient_id(cs_data),
             'observables': [self.observable],
             'priority': 85,
             'schema_version': '1.1.6',
-            'severity': self._severity(cs_response),
+            'severity': self._severity(cs_data),
             'source': 'Sumo Logic',
             'type': 'judgement',
             'valid_time': {
-                'start_time': cs_response['last_updated'],
-                'end_time': self._valid_time(cs_response['last_updated'], self.observable['type'])
+                'start_time': cs_data['last_updated'],
+                'end_time': self._valid_time(cs_data['last_updated'],
+                                             self.observable['type'])
             },
-            'external_references': self._external_references(cs_response),
+            'external_references': self._external_references(cs_data),
             'reason': 'Found in CrowdStrike Intelligence',
             'reason_uri': 'https://www.crowdstrike.com/',
             'tlp': 'amber',
@@ -113,14 +113,19 @@ class Mapping:
         }
         return judgement
 
-    def extract_judgement(self, raw):
-        crowd_strike_response = json.loads(raw)
-        judgement = self._judgement(crowd_strike_response)
+    def extract_judgement(self, crowd_strike_data):
+        judgement = self._judgement(crowd_strike_data)
         return judgement
 
+    def _transient_id(self, cs_data):
+        seeds = f'Sumo Logic|{self.observable["value"]}|' \
+                f'{self._disposition(cs_data)["disposition"]}|' \
+                f'{cs_data["last_updated"]}'
+        return f'transient:judgement-{uuid5(NAMESPACE_X500, seeds)}'
+
     @staticmethod
-    def _disposition(cs_response):
-        confidence = cs_response['malicious_confidence']
+    def _disposition(cs_data):
+        confidence = cs_data['malicious_confidence']
         disposition_map = {
             'high': {
                 'disposition': 2,
@@ -142,8 +147,8 @@ class Mapping:
         return disposition_map[confidence]
 
     @staticmethod
-    def _severity(cs_response):
-        confidence = cs_response['malicious_confidence']
+    def _severity(cs_data):
+        confidence = cs_data['malicious_confidence']
         severity_map = {
             'high': 'High',
             'medium': 'Medium',
@@ -172,8 +177,8 @@ class Mapping:
         return time_map[observable_type]
 
     @staticmethod
-    def _external_references(cs_response):
-        reports = cs_response['reports']
+    def _external_references(cs_data):
+        reports = cs_data['reports']
         references = []
         for report in reports:
             references.append({
@@ -182,6 +187,3 @@ class Mapping:
                 'external_id': report
             })
         return references
-
-
-
