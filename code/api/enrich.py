@@ -20,17 +20,17 @@ def observe_observables():
     g.sightings = []
     g.judgements = []
 
-    sumo_logic_client = SumoLogicClient(credentials)
+    client = SumoLogicClient(credentials)
 
     for observable in observables:
         mapping = Mapping(observable)
-        messages = sumo_logic_client.get_messages(observable['value'])
+        messages = client.get_messages(observable['value'])
 
         for message in messages:
             sighting = mapping.extract_sighting(message['map'])
             g.sightings.append(sighting)
 
-        crowd_strike_data = sumo_logic_client.get_crowd_strike_data(
+        crowd_strike_data = client.get_crowd_strike_data(
             observable['value'])
         if crowd_strike_data:
             judgment = mapping.extract_judgement(crowd_strike_data)

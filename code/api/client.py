@@ -98,7 +98,8 @@ class SumoLogicClient:
             if status_response['state'] in [self.FORCE_PAUSED, self.CANCELLED]:
                 raise SearchJobWrongStateError(
                     observable,
-                    status_response['state'])
+                    status_response['state']
+                )
             if time.time() - start_time > self.SEARCH_JOB_MAX_TIME:
                 if status_response['state'] == self.NOT_STARTED:
                     raise SearchJobNotStartedError(
@@ -123,8 +124,6 @@ class SumoLogicClient:
             'query': search_query,
             'from': current_time - search_time_range,
             'to': current_time
-            # 'from': 1617261824000,
-            # 'to': 1622532224000
         }
         search_result = self._request(path=path, method='POST', body=payload)
         return search_result.get('id')
