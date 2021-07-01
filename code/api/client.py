@@ -3,6 +3,7 @@ import json
 
 import requests
 from requests.exceptions import SSLError, ConnectionError, MissingSchema
+from flask import current_app
 
 from api.errors import (
     SumoLogicSSLError,
@@ -25,6 +26,9 @@ class SumoLogicClient:
 
     def __init__(self, credentials):
         self._credentials = credentials
+        self._headers = {
+            'user-agent': current_app.config['USER_AGENT']
+        }
 
     @property
     def _url(self):
@@ -44,7 +48,8 @@ class SumoLogicClient:
 
         try:
             response = requests.request(method, url, json=body,
-                                        params=params, auth=self._auth)
+                                        params=params, auth=self._auth,
+                                        headers=self._headers)
         except SSLError as error:
             raise SumoLogicSSLError(error)
         except (ConnectionError, MissingSchema):
