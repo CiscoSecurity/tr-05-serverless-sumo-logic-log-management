@@ -88,6 +88,21 @@ def api_response():
     return _make_mock
 
 
+@fixture
+def enrich_side_effect_list(api_response,
+                            response_payload_for_create_job_request,
+                            response_payload_for_check_status_request,
+                            response_payload_for_get_messages_request):
+    def _side_effect_list(messages_count):
+        return (api_response(response_payload_for_create_job_request),
+                api_response(response_payload_for_check_status_request(
+                    DONE_GATHERING_RESULTS,
+                    messages_count)),
+                api_response(response_payload_for_get_messages_request),
+                api_response())
+    return _side_effect_list
+
+
 @fixture(scope='module')
 def search_id():
     return '347A844D53240C86'
@@ -153,7 +168,10 @@ def response_payload_for_get_messages_request():
                         'src_ipv6': '',
                         '_sourcename': 'local use 4  (local4)',
                         '_receipttime': '1619720153842',
-                        '_sourcecategory': 'syslog'
+                        '_sourcecategory': 'syslog',
+                        'raw': '{"last_updated":1619529860,"reports":'
+                               '["CSIT-17109","CSIR-18011"],'
+                               '"malicious_confidence":"high"}'
                     }
             }
         ]
@@ -180,20 +198,31 @@ def general_response_payload_for_sumo_api_request(
 
 
 @fixture
-def expected_relay_response(sighting_base_payload):
+def expected_relay_response(sighting_base_payload, judgement_base_payload):
     def _make_payload(state=None, messages_count=0):
-        sighting_base_payload['errors'] = []
+        payload = {
+            'data': {
+                'sightings': sighting_base_payload,
+                'judgements': judgement_base_payload
+            },
+            'errors': []
+        }
         if state == GATHERING_RESULTS:
-            sighting_base_payload['errors'].append(
+            payload['errors'].extend([
                 {
                     'code': 'search job did not finish',
-                    'message': 'The search job did not finish in the time '
-                               'required for cisco.com',
+                    'message': 'The Sumo Logic search job did not finish in '
+                               'the time required for cisco.com',
+                    'type': 'warning'
+                }, {
+                    'code': 'search job did not finish',
+                    'message': 'The Crowd Strike search job did not finish in '
+                               'the time required for cisco.com',
                     'type': 'warning'
                 }
-            )
+            ])
         if state in [CANCELLED, FORCE_PAUSED]:
-            sighting_base_payload['errors'].append(
+            payload['errors'].append(
                 {
                     'code': state.lower(),
                     'message': f'The job was {state.lower()} before results '
@@ -201,9 +230,9 @@ def expected_relay_response(sighting_base_payload):
                     'type': 'fatal'
                 }
             )
-            sighting_base_payload.pop('data')
+            payload.pop('data')
         if state == NOT_STARTED:
-            sighting_base_payload['errors'].append(
+            payload['errors'].append(
                 {
                     'code': state.lower(),
                     'message': f'The job was {state.lower()} within the '
@@ -211,9 +240,9 @@ def expected_relay_response(sighting_base_payload):
                     'type': 'fatal'
                 }
             )
-            sighting_base_payload.pop('data')
+            payload.pop('data')
         if messages_count > 100:
-            sighting_base_payload['errors'].append(
+            payload['errors'].append(
                 {
                     'code': 'more messages are available',
                     'message': 'There are more messages in Sumo Logic '
@@ -222,121 +251,114 @@ def expected_relay_response(sighting_base_payload):
                     'type': 'warning'
                 }
             )
-        if not sighting_base_payload['errors']:
-            sighting_base_payload.pop('errors')
-        return sighting_base_payload
+        if not payload['errors']:
+            payload.pop('errors')
+        return payload
     return _make_payload
 
 
 @fixture
 def sighting_base_payload():
-    return {
-        'data': {
-            'sightings': {
-                'count': 1,
-                'docs': [
-                    {
-                        'confidence': 'High',
-                        'count': 667,
-                        'data': {
-                            'columns': [
-                                {
-                                    'name': 'msg',
-                                    'type': 'string'
-                                },
-                                {
-                                    'name': 'protocol',
-                                    'type': 'string'
-                                },
-                                {
-                                    'name': 'action',
-                                    'type': 'string'
-                                },
-                                {
-                                    'name': 'dest_port',
-                                    'type': 'string'
-                                },
-                                {
-                                    'name': 'log_level',
-                                    'type': 'string'
-                                },
-                                {
-                                    'name': 'dest_ip',
-                                    'type': 'string'
-                                },
-                                {
-                                    'name': 'dest_zone',
-                                    'type': 'string'
-                                },
-                                {
-                                    'name': 'src_ip',
-                                    'type': 'string'
-                                },
-                                {
-                                    'name': 'message_id',
-                                    'type': 'string'
-                                }
-                            ],
-                            'rows': [
-                                [
-                                    'TCP access denied by ACL '
-                                    'from 188.163.104.233/18488 '
-                                    'to outside:24.141.139.103/80',
-                                    'TCP',
-                                    'access denied',
-                                    '80',
-                                    '3',
-                                    '24.141.139.103',
-                                    'outside',
-                                    '10.100.20.1',
-                                    '710003'
-                                ]
-                            ]
-                        },
-                        'description': '```\n<163>%ASA-3-710003: TCP access '
-                                       'denied by ACL '
-                                       'from 188.163.104.233/18488 '
-                                       'to outside:24.141.139.103/80\n```',
-                        'external_ids': ['702686314684941315'],
-                        'id': '702686314684941315',
-                        'internal': True,
-                        'observables': [
-                            {
-                                'type': 'domain',
-                                'value': 'cisco.com'
-                            }
-                        ],
-                        'observed_time': {
-                            'start_time': '2021-04-29T18:15:53.842+00:00'
-                        },
-                        'relations': [
-                            {
-                                'origin': 'qradar',
-                                'related': {
-                                    'type': 'ip',
-                                    'value': '24.141.139.103'
-                                },
-                                'relation': 'Connected_To',
-                                'source': {
-                                    'type': 'ip',
-                                    'value': '10.100.20.1'
-                                }
-                            }
-                        ],
-                        'schema_version': '1.1.5',
-                        'short_description': 'devbox-collector received a log '
-                                             'from qradar - local use 4  '
-                                             '(local4) containing the '
-                                             'observable',
-                        'source': 'Sumo Logic',
-                        'title': 'Log message from last 30 days in Sumo Logic '
-                                 'contains observable',
-                        'type': 'sighting'
-                    }
-                ]
-            }
-        }
-    }
+    return {'count': 1,
+            'docs': [{'confidence': 'High',
+                      'count': 667,
+                      'data': {'columns': [{'name': 'msg',
+                                            'type': 'string'},
+                                           {'name': 'protocol',
+                                            'type': 'string'},
+                                           {'name': 'action',
+                                            'type': 'string'},
+                                           {'name': 'dest_port',
+                                            'type': 'string'},
+                                           {'name': 'log_level',
+                                            'type': 'string'},
+                                           {'name': 'dest_ip',
+                                            'type': 'string'},
+                                           {'name': 'dest_zone',
+                                            'type': 'string'},
+                                           {'name': 'src_ip',
+                                            'type': 'string'},
+                                           {'name': 'message_id',
+                                            'type': 'string'},
+                                           {'name': 'raw',
+                                            'type': 'string'}],
+                               'rows': [['TCP access denied by ACL '
+                                         'from 188.163.104.233/18488 '
+                                         'to outside:24.141.139.103/80',
+                                         'TCP',
+                                         'access denied',
+                                         '80',
+                                         '3',
+                                         '24.141.139.103',
+                                         'outside',
+                                         '10.100.20.1',
+                                         '710003',
+                                         '{"last_updated":1619529860,'
+                                         '"reports":["CSIT-17109",'
+                                         '"CSIR-18011"],"malicious_'
+                                         'confidence":"high"}']]},
+                      'description': '```\n<163>%ASA-3-710003: TCP access '
+                                     'denied by ACL '
+                                     'from 188.163.104.233/18488 '
+                                     'to outside:24.141.139.103/80\n```',
+                      'external_ids': ['702686314684941315'],
+                      'id': '702686314684941315',
+                      'internal': True,
+                      'observables': [{'type': 'domain',
+                                       'value': 'cisco.com'}],
+                      'observed_time': {'start_time': '2021-04-29T18:15:53'
+                                                      '.842+00:00'},
+                      'relations': [{'origin': 'qradar',
+                                     'related': {'type': 'ip',
+                                                 'value': '24.141.139.103'},
+                                     'relation': 'Connected_To',
+                                     'source': {'type': 'ip',
+                                                'value': '10.100.20.1'}}],
+                      'schema_version': '1.1.6',
+                      'short_description': 'devbox-collector received a log '
+                                           'from qradar - local use 4  '
+                                           '(local4) containing the '
+                                           'observable',
+                      'source': 'Sumo Logic',
+                      'title': 'Log message from last 30 days in Sumo Logic '
+                               'contains observable',
+                      'type': 'sighting'}]}
+
+
+@fixture
+def judgement_base_payload():
+    return {'count': 1,
+            'docs': [{'confidence': 'High',
+                      'disposition': 2,
+                      'disposition_name': 'Malicious',
+                      'external_references': [{'description': 'Crowd'
+                                                              'Strike Inte'
+                                                              'lligence '
+                                                              'Report',
+                                               'external_id': 'CSIT-17109',
+                                               'source_name': 'CrowdStrike'},
+                                              {'description': 'Crowd'
+                                                              'Strike Intel'
+                                                              'ligence '
+                                                              'Report',
+                                               'external_id': 'CSIR-18011',
+                                               'source_name': 'CrowdStrike'}],
+                      'id': 'transient:judgement-43c16a5e-cb1c-5bca-a26f'
+                            '-4f9ec202a7ee',
+                      'observables': [{'type': 'domain',
+                                       'value': 'cisco.com'}],
+                      'priority': 85,
+                      'reason': 'Found in CrowdStrike '
+                                'Intelligence',
+                      'reason_uri': 'https://www.crowdstrike.com/',
+                      'schema_version': '1.1.6',
+                      'severity': 'High',
+                      'source': 'Sumo Logic',
+                      'source_uri': 'https://api.us2.sumologic.com/api/v1/',
+                      'tlp': 'amber',
+                      'type': 'judgement',
+                      'valid_time': {'end_time': 1622121860,
+                                     'start_time': 1619529860}}]}
 
 
 @fixture(scope='module')
