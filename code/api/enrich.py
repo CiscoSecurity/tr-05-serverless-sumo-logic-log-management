@@ -19,6 +19,7 @@ def observe_observables():
 
     g.sightings = []
     g.judgements = []
+    g.verdicts = []
 
     client = SumoLogicClient(credentials)
 
@@ -35,5 +36,27 @@ def observe_observables():
         if crowd_strike_data:
             judgment = mapping.extract_judgement(crowd_strike_data)
             g.judgements.append(judgment)
+            verdict = mapping.extract_verdict(crowd_strike_data)
+            g.verdicts.append(verdict)
+
+    return jsonify_result()
+
+
+@enrich_api.route('/deliberate/observables', methods=['POST'])
+def deliberate_observables():
+    credentials = get_credentials()
+    observables = get_observables()
+
+    g.verdicts = []
+
+    client = SumoLogicClient(credentials)
+
+    for observable in observables:
+        mapping = Mapping(observable)
+        crowd_strike_data = client.get_crowd_strike_data(
+            observable['value'])
+        if crowd_strike_data:
+            verdict = mapping.extract_verdict(crowd_strike_data)
+            g.verdicts.append(verdict)
 
     return jsonify_result()

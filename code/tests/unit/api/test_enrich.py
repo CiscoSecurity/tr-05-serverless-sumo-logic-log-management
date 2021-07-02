@@ -15,6 +15,7 @@ from tests.unit.conftest import (
 
 def routes():
     yield '/observe/observables'
+    yield '/deliberate/observables'
 
 
 @fixture(scope='module', params=routes(), ids=lambda route: f'POST {route}')

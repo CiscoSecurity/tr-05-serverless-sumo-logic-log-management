@@ -8,6 +8,7 @@ class Mapping:
 
     def __init__(self, observable):
         self.observable = observable
+        self._judgement_id = None
 
     @staticmethod
     def _short_description(message):
@@ -121,7 +122,9 @@ class Mapping:
         seeds = f'Sumo Logic|{self.observable["value"]}|' \
                 f'{self._disposition(cs_data)["disposition"]}|' \
                 f'{cs_data["last_updated"]}'
-        return f'transient:judgement-{uuid5(NAMESPACE_X500, seeds)}'
+        judgement_id = f'transient:judgement-{uuid5(NAMESPACE_X500, seeds)}'
+        self._judgement_id = judgement_id
+        return judgement_id
 
     @staticmethod
     def _disposition(cs_data):
@@ -174,3 +177,22 @@ class Mapping:
                 'external_id': report
             })
         return references
+
+    def _verdict(self, cs_data):
+        verdict = {
+            **self._disposition(cs_data),
+            'observables': [self.observable],
+            'type': 'verdict',
+            'valid_time': {
+                'start_time': cs_data['last_updated'],
+                'end_time': self._valid_time(cs_data['last_updated'],
+                                             self.observable['type'])
+            }
+        }
+        return verdict
+
+    def extract_verdict(self, crowd_strike_data):
+        verdict = self._verdict(crowd_strike_data)
+        if self._judgement_id:
+            verdict['judgement_id'] = self._judgement_id
+        return verdict
