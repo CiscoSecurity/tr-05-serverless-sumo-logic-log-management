@@ -90,10 +90,10 @@ class CriticalSumoLogicResponseError(TRFormattedError):
 
 
 class SearchJobDidNotFinishWarning(TRFormattedError):
-    def __init__(self, observable):
+    def __init__(self, observable, search_type):
         super().__init__(
             'search job did not finish',
-            'The search job did not finish '
+            f'The {search_type} search job did not finish '
             f'in the time required for {observable}',
             type_='warning'
         )

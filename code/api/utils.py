@@ -7,7 +7,7 @@ from jwt import (InvalidSignatureError,
                  DecodeError,
                  InvalidAudienceError,
                  MissingRequiredClaimError)
-from flask import request, jsonify, g
+from flask import request, jsonify, g, current_app
 
 from api.errors import AuthorizationError, InvalidArgumentError
 
@@ -93,9 +93,11 @@ def get_credentials():
         aud = request.url_root
         payload = jwt.decode(
             token, key=key, algorithms=['RS256'], audience=[aud.rstrip('/')])
+
         assert 'sumo_api_endpoint' in payload
         assert 'access_id' in payload
         assert 'access_key' in payload
+        current_app.config['SUMO_API_ENDPOINT'] = payload['sumo_api_endpoint']
         return payload
     except tuple(expected_errors) as error:
         message = expected_errors[error.__class__]
@@ -127,6 +129,9 @@ def jsonify_result():
 
     if g.get('sightings'):
         result['data']['sightings'] = format_docs(g.sightings)
+
+    if g.get('judgements'):
+        result['data']['judgements'] = format_docs(g.judgements)
 
     if g.get('errors'):
         result['errors'] = g.errors
