@@ -3,6 +3,7 @@ import json
 
 import requests
 from requests.exceptions import SSLError, ConnectionError, MissingSchema
+from flask import current_app
 
 from api.errors import (
     SumoLogicSSLError,
@@ -21,10 +22,15 @@ class SumoLogicClient:
     CANCELLED = 'CANCELLED'
     NOT_STARTED = 'NOT STARTED'
     SEARCH_JOB_MAX_TIME = 50
-    CTR_ENTITIES_LIMIT = 100
 
     def __init__(self, credentials):
         self._credentials = credentials
+        self._headers = {
+            'user-agent': current_app.config['USER_AGENT']
+        }
+        self._entities_limit = current_app.config['CTR_ENTITIES_LIMIT']
+        self._entities_limit_default = current_app.config[
+            'CTR_ENTITIES_LIMIT_DEFAULT']
 
     @property
     def _url(self):
@@ -44,7 +50,8 @@ class SumoLogicClient:
 
         try:
             response = requests.request(method, url, json=body,
-                                        params=params, auth=self._auth)
+                                        params=params, auth=self._auth,
+                                        headers=self._headers)
         except SSLError as error:
             raise SumoLogicSSLError(error)
         except (ConnectionError, MissingSchema):
@@ -111,7 +118,7 @@ class SumoLogicClient:
             status_response = self._check_status(search_id)
             time.sleep(check_request_delay)
 
-        if status_response['messageCount'] > self.CTR_ENTITIES_LIMIT:
+        if status_response['messageCount'] > self._entities_limit_default:
             add_error(MoreMessagesAvailableWarning(observable))
         messages = self._get_messages(search_id)
         self._delete_job(search_id)
@@ -137,7 +144,7 @@ class SumoLogicClient:
         path = f'search/jobs/{search_id}/messages'
         params = {
             'offset': 0,
-            'limit': self.CTR_ENTITIES_LIMIT
+            'limit': self._entities_limit
         }
         messages_result = self._request(path=path, params=params)
         return messages_result['messages']
