@@ -355,7 +355,7 @@ def sighting_base_payload():
                                      'relation': 'Connected_To',
                                      'source': {'type': 'ip',
                                                 'value': '10.100.20.1'}}],
-                      'schema_version': '1.1.6',
+                      'schema_version': '1.0.6',
                       'short_description': 'devbox-collector received a log '
                                            'from qradar - local use 4  '
                                            '(local4) containing the '
@@ -392,7 +392,7 @@ def judgement_base_payload():
                       'reason': 'Found in CrowdStrike '
                                 'Intelligence',
                       'reason_uri': 'https://www.crowdstrike.com/',
-                      'schema_version': '1.1.6',
+                      'schema_version': '1.0.6',
                       'severity': 'High',
                       'source': 'Sumo Logic',
                       'source_uri': 'https://api.us2.sumologic.com/api/v1/',

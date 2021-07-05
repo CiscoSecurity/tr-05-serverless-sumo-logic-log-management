@@ -4,7 +4,7 @@ from flask import Blueprint, g
 
 from api.schemas import ObservableSchema
 from api.utils import get_json, get_credentials, jsonify_result
-from api.mapping import Mapping
+from api.mapping import Sighting, Judgement, Verdict
 from api.client import SumoLogicClient
 
 enrich_api = Blueprint('enrich', __name__)
@@ -21,22 +21,26 @@ def observe_observables():
     g.judgements = []
     g.verdicts = []
 
+    sighting_map = Sighting()
+    judgment_map = Judgement()
+    verdict_map = Verdict()
+
     client = SumoLogicClient(credentials)
 
     for observable in observables:
-        mapping = Mapping(observable)
         messages = client.get_messages(observable['value'])
 
         for message in messages:
-            sighting = mapping.extract_sighting(message['map'])
+            sighting = sighting_map.extract(message['map'], observable)
             g.sightings.append(sighting)
 
         crowd_strike_data = client.get_crowd_strike_data(
             observable['value'])
         if crowd_strike_data:
-            judgment = mapping.extract_judgement(crowd_strike_data)
+            judgment = judgment_map.extract(crowd_strike_data, observable)
             g.judgements.append(judgment)
-            verdict = mapping.extract_verdict(crowd_strike_data)
+            verdict = verdict_map.extract(crowd_strike_data, observable,
+                                          judgment['id'])
             g.verdicts.append(verdict)
 
     return jsonify_result()
@@ -49,14 +53,15 @@ def deliberate_observables():
 
     g.verdicts = []
 
+    verdict_map = Verdict()
+
     client = SumoLogicClient(credentials)
 
     for observable in observables:
-        mapping = Mapping(observable)
         crowd_strike_data = client.get_crowd_strike_data(
             observable['value'])
         if crowd_strike_data:
-            verdict = mapping.extract_verdict(crowd_strike_data)
+            verdict = verdict_map.extract(crowd_strike_data, observable)
             g.verdicts.append(verdict)
 
     return jsonify_result()
