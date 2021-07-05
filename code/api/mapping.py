@@ -9,7 +9,7 @@ VERDICT = 'verdict'
 
 SOURCE = 'Sumo Logic'
 CONFIDENCE = 'High'
-SCHEMA_VERSION = '1.0.6'
+SCHEMA_VERSION = '1.1.6'
 
 SIGHTING_DEFAULTS = {
     'confidence': CONFIDENCE,
