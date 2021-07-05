@@ -97,6 +97,8 @@ def get_credentials():
         assert 'sumo_api_endpoint' in payload
         assert 'access_id' in payload
         assert 'access_key' in payload
+
+        set_entities_limit(payload)
         current_app.config['SUMO_API_ENDPOINT'] = payload['sumo_api_endpoint']
         return payload
     except tuple(expected_errors) as error:
@@ -151,3 +153,13 @@ def jsonify_data(data):
 
 def add_error(error):
     g.errors = [*g.get('errors', []), error.json]
+
+
+def set_entities_limit(payload):
+    default = current_app.config['CTR_ENTITIES_LIMIT_DEFAULT']
+    try:
+        value = int(payload['CTR_ENTITIES_LIMIT'])
+        current_app.config['CTR_ENTITIES_LIMIT'] = value \
+            if value in range(1, default + 1) else default
+    except (ValueError, TypeError, KeyError):
+        current_app.config['CTR_ENTITIES_LIMIT'] = default
