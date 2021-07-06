@@ -1,5 +1,6 @@
 from unittest.mock import MagicMock
 from http import HTTPStatus
+from copy import deepcopy
 
 import jwt
 from pytest import fixture
@@ -198,63 +199,103 @@ def general_response_payload_for_sumo_api_request(
 
 
 @fixture
-def expected_relay_response(sighting_base_payload, judgement_base_payload):
+def expected_relay_response(route, success_observe_body,
+                            success_deliberate_body):
     def _make_payload(state=None, messages_count=0):
+        payload_to_route_match = {
+            '/observe/observables': success_observe_body(state,
+                                                         messages_count),
+            '/deliberate/observables': success_deliberate_body(state,
+                                                               messages_count)
+        }
+        return payload_to_route_match[route]
+    return _make_payload
+
+
+@fixture
+def success_observe_body(route, sighting_base_payload, judgement_base_payload,
+                         verdict_base_payload):
+    def _make_body(state, messages_count):
         payload = {
             'data': {
                 'sightings': sighting_base_payload,
-                'judgements': judgement_base_payload
+                'judgements': judgement_base_payload,
+                'verdicts': verdict_base_payload
             },
             'errors': []
         }
-        if state == GATHERING_RESULTS:
-            payload['errors'].extend([
+        return add_errors(payload, state, messages_count, route)
+    return _make_body
+
+
+@fixture
+def success_deliberate_body(verdict_base_payload):
+    verdict_payload = deepcopy(verdict_base_payload)
+    verdict_payload['docs'][0].pop('judgement_id')
+
+    def _make_body(state, messages_count):
+        payload = {
+            'data': {
+                'verdicts': verdict_payload
+            },
+            'errors': []
+        }
+        return add_errors(payload, state, messages_count)
+    return _make_body
+
+
+def add_errors(payload, state, messages_count, route=''):
+    if state == GATHERING_RESULTS:
+        if route == '/observe/observables':
+            payload['errors'].append(
                 {
                     'code': 'search job did not finish',
                     'message': 'The Sumo Logic search job did not finish in '
                                'the time required for cisco.com',
                     'type': 'warning'
-                }, {
-                    'code': 'search job did not finish',
-                    'message': 'The Crowd Strike search job did not finish in '
-                               'the time required for cisco.com',
-                    'type': 'warning'
-                }
-            ])
-        if state in [CANCELLED, FORCE_PAUSED]:
-            payload['errors'].append(
-                {
-                    'code': state.lower(),
-                    'message': f'The job was {state.lower()} before results '
-                               'could be retrieved for cisco.com',
-                    'type': 'fatal'
                 }
             )
-            payload.pop('data')
-        if state == NOT_STARTED:
-            payload['errors'].append(
-                {
-                    'code': state.lower(),
-                    'message': f'The job was {state.lower()} within the '
-                               'required time for cisco.com',
-                    'type': 'fatal'
-                }
-            )
-            payload.pop('data')
-        if messages_count > 100:
-            payload['errors'].append(
-                {
-                    'code': 'more messages are available',
-                    'message': 'There are more messages in Sumo Logic '
-                               'for cisco.com '
-                               'than can be displayed in Threat Response.',
-                    'type': 'warning'
-                }
-            )
-        if not payload['errors']:
-            payload.pop('errors')
-        return payload
-    return _make_payload
+        payload['errors'].append(
+            {
+                'code': 'search job did not finish',
+                'message': 'The Crowd Strike search job did not finish in '
+                           'the time required for cisco.com',
+                'type': 'warning'
+            }
+        )
+    if state in [CANCELLED, FORCE_PAUSED]:
+        payload['errors'].append(
+            {
+                'code': state.lower(),
+                'message': f'The job was {state.lower()} before results '
+                           'could be retrieved for cisco.com',
+                'type': 'fatal'
+            }
+        )
+        payload.pop('data')
+    if state == NOT_STARTED:
+        payload['errors'].append(
+            {
+                'code': state.lower(),
+                'message': f'The job was {state.lower()} within the '
+                           'required time for cisco.com',
+                'type': 'fatal'
+            }
+        )
+        payload.pop('data')
+    if messages_count > 100:
+        payload['errors'].append(
+            {
+                'code': 'more messages are available',
+                'message': 'There are more messages in Sumo Logic '
+                           'for cisco.com '
+                           'than can be displayed in Threat Response.',
+                'type': 'warning'
+            }
+        )
+    if not payload['errors']:
+        payload.pop('errors')
+    return payload
 
 
 @fixture
@@ -357,6 +398,20 @@ def judgement_base_payload():
                       'source_uri': 'https://api.us2.sumologic.com/api/v1/',
                       'tlp': 'amber',
                       'type': 'judgement',
+                      'valid_time': {'end_time': 1622121860,
+                                     'start_time': 1619529860}}]}
+
+
+@fixture
+def verdict_base_payload():
+    return {'count': 1,
+            'docs': [{'disposition': 2,
+                      'disposition_name': 'Malicious',
+                      'judgement_id': 'transient:judgement-43c16a5e-cb1c-5bca'
+                                      '-a26f-4f9ec202a7ee',
+                      'observables': [{'type': 'domain',
+                                       'value': 'cisco.com'}],
+                      'type': 'verdict',
                       'valid_time': {'end_time': 1622121860,
                                      'start_time': 1619529860}}]}
 

@@ -3,51 +3,86 @@ from uuid import uuid5, NAMESPACE_X500
 
 from flask import current_app
 
+SIGHTING = 'sighting'
+JUDGEMENT = 'judgement'
+VERDICT = 'verdict'
 
-class Mapping:
+SOURCE = 'Sumo Logic'
+CONFIDENCE = 'High'
+SCHEMA_VERSION = '1.1.6'
 
-    def __init__(self, observable):
-        self.observable = observable
+SIGHTING_DEFAULTS = {
+    'confidence': CONFIDENCE,
+    'schema_version': SCHEMA_VERSION,
+    'source': SOURCE,
+    'type': SIGHTING,
+    'title': 'Log message from last 30 days in Sumo Logic contains '
+             'observable',
+    'internal': True
+}
+JUDGEMENT_DEFAULTS = {
+    'confidence': CONFIDENCE,
+    'schema_version': SCHEMA_VERSION,
+    'source': SOURCE,
+    'type': JUDGEMENT,
+    'priority': 85,
+    'reason': 'Found in CrowdStrike Intelligence',
+    'reason_uri': 'https://www.crowdstrike.com/',
+    'tlp': 'amber'
+}
+VERDICT_DEFAULTS = {
+    'type': VERDICT
+}
 
-    @staticmethod
-    def _short_description(message):
-        return f'{message.get("_collector")} received a log from ' \
-               f'{message.get("_source")} - {message.get("_sourcename")} ' \
-               'containing the observable'
+DISPOSITION_MAP = {
+    'high': {
+        'disposition': 2,
+        'disposition_name': 'Malicious'
+    },
+    'medium': {
+        'disposition': 2,
+        'disposition_name': 'Malicious'
+    },
+    'low': {
+        'disposition': 3,
+        'disposition_name': 'Suspicious'
+    },
+    'unverified': {
+        'disposition': 5,
+        'disposition_name': 'Unknown'
+    }
+}
 
-    @staticmethod
-    def _count(message):
-        return (
-            int(message.get('_messagecount')) if message.get('_messagecount')
-            else 1)
+SEVERITY_MAP = {
+    'high': 'High',
+    'medium': 'Medium',
+    'low': 'Low',
+    'unverified': 'Unknown'
+}
 
-    @staticmethod
-    def _start_time(message):
-        message_timestamp = int(message.get('_messagetime')) / 10**3
-        message_date = datetime.fromtimestamp(message_timestamp, timezone.utc)
-        return message_date.isoformat(timespec='milliseconds')
 
-    def _sighting(self, message, data_table):
+def valid_time(start_time, observable_type):
+    if observable_type in ['domain', 'email', 'ip', 'ipv6', 'url']:
+        return start_time + 30 * 24 * 60 * 60
+    return datetime(2525, 1, 1)
+
+
+class Sighting:
+    def _sighting(self, message, observable):
         sighting = {
-            'confidence': 'High',
             'count': self._count(message),
-            'title': 'Log message from last 30 days '
-                     'in Sumo Logic contains observable',
             'description': f'```\n{message.get("_raw")}\n```',
-            'internal': True,
             'short_description': self._short_description(message),
             'external_ids': [
                 message.get('_messageid')
             ],
             'id': message.get('_messageid'),
-            'observables': [self.observable],
+            'observables': [observable],
             'observed_time': {
                 'start_time': self._start_time(message)
             },
-            'schema_version': '1.1.6',
-            'source': 'Sumo Logic',
-            'type': 'sighting',
-            'data': data_table
+            'data': self._data_table(message),
+            **SIGHTING_DEFAULTS
         }
 
         if message.get('src_ip') and message.get('dest_ip'):
@@ -56,18 +91,22 @@ class Mapping:
         return sighting
 
     @staticmethod
-    def _data_table(message):
-        data = {
-            'columns': [],
-            'rows': [[]]
-        }
+    def _start_time(message):
+        message_timestamp = int(message.get('_messagetime')) / 10 ** 3
+        message_date = datetime.fromtimestamp(message_timestamp, timezone.utc)
+        return message_date.isoformat(timespec='milliseconds')
 
-        for key, value in message.items():
-            if not key.startswith('_') and value:
-                data['columns'].append({"name": key, "type": "string"})
-                data['rows'][0].append(value)
+    @staticmethod
+    def _count(message):
+        return (
+            int(message.get('_messagecount')) if message.get('_messagecount')
+            else 1)
 
-        return data
+    @staticmethod
+    def _short_description(message):
+        return f'{message.get("_collector")} received a log from ' \
+               f'{message.get("_source")} - {message.get("_sourcename")} ' \
+               'containing the observable'
 
     @staticmethod
     def _relation(message):
@@ -84,84 +123,42 @@ class Mapping:
             }
         }]
 
-    def extract_sighting(self, message):
-        data_table = self._data_table(message)
-        sighting = self._sighting(message, data_table)
+    @staticmethod
+    def _data_table(message):
+        data = {
+            'columns': [],
+            'rows': [[]]
+        }
+
+        for key, value in message.items():
+            if not key.startswith('_') and value:
+                data['columns'].append({"name": key, "type": "string"})
+                data['rows'][0].append(value)
+
+        return data
+
+    def extract(self, message, observable):
+        sighting = self._sighting(message, observable)
         return sighting
 
-    def _judgement(self, cs_data):
+
+class Judgement():
+    def _judgement(self, cs_data, observable):
         judgement = {
-            **self._disposition(cs_data),
-            'confidence': 'High',
-            'id': self._transient_id(cs_data),
-            'observables': [self.observable],
-            'priority': 85,
-            'schema_version': '1.1.6',
-            'severity': self._severity(cs_data),
-            'source': 'Sumo Logic',
-            'type': 'judgement',
+            **DISPOSITION_MAP[cs_data['malicious_confidence']],
+            'id': self._transient_id(cs_data, observable),
+            'observables': [observable],
+            'severity': SEVERITY_MAP[cs_data['malicious_confidence']],
             'valid_time': {
                 'start_time': cs_data['last_updated'],
-                'end_time': self._valid_time(cs_data['last_updated'],
-                                             self.observable['type'])
+                'end_time': valid_time(cs_data['last_updated'],
+                                       observable['type'])
             },
             'external_references': self._external_references(cs_data),
-            'reason': 'Found in CrowdStrike Intelligence',
-            'reason_uri': 'https://www.crowdstrike.com/',
-            'tlp': 'amber',
-            'source_uri': current_app.config['SUMO_API_ENDPOINT']
+            'source_uri': current_app.config['SUMO_API_ENDPOINT'],
+            **JUDGEMENT_DEFAULTS,
         }
         return judgement
-
-    def extract_judgement(self, crowd_strike_data):
-        judgement = self._judgement(crowd_strike_data)
-        return judgement
-
-    def _transient_id(self, cs_data):
-        seeds = f'Sumo Logic|{self.observable["value"]}|' \
-                f'{self._disposition(cs_data)["disposition"]}|' \
-                f'{cs_data["last_updated"]}'
-        return f'transient:judgement-{uuid5(NAMESPACE_X500, seeds)}'
-
-    @staticmethod
-    def _disposition(cs_data):
-        confidence = cs_data['malicious_confidence']
-        disposition_map = {
-            'high': {
-                'disposition': 2,
-                'disposition_name': 'Malicious'
-            },
-            'medium': {
-                'disposition': 2,
-                'disposition_name': 'Malicious'
-            },
-            'low': {
-                'disposition': 3,
-                'disposition_name': 'Suspicious'
-            },
-            'unverified': {
-                'disposition': 5,
-                'disposition_name': 'Unknown'
-            }
-        }
-        return disposition_map[confidence]
-
-    @staticmethod
-    def _severity(cs_data):
-        confidence = cs_data['malicious_confidence']
-        severity_map = {
-            'high': 'High',
-            'medium': 'Medium',
-            'low': 'Low',
-            'unverified': 'Unknown'
-        }
-        return severity_map[confidence]
-
-    @staticmethod
-    def _valid_time(start_time, observable_type):
-        if observable_type in ['domain', 'email', 'ip', 'ipv6', 'url']:
-            return start_time + 30 * 24 * 60 * 60
-        return '2525-01-01T00:00:00.000Z'
 
     @staticmethod
     def _external_references(cs_data):
@@ -174,3 +171,37 @@ class Mapping:
                 'external_id': report
             })
         return references
+
+    @staticmethod
+    def _transient_id(cs_data, observable):
+        disposition = DISPOSITION_MAP[cs_data['malicious_confidence']][
+            "disposition"]
+        seeds = f'{SOURCE}|{observable["value"]}|{disposition}|' \
+                f'{cs_data["last_updated"]}'
+        judgement_id = f'transient:judgement-{uuid5(NAMESPACE_X500, seeds)}'
+        return judgement_id
+
+    def extract(self, crowd_strike_data, observable):
+        judgement = self._judgement(crowd_strike_data, observable)
+        return judgement
+
+
+class Verdict():
+    def _verdict(self, cs_data, observable):
+        verdict = {
+            **DISPOSITION_MAP[cs_data['malicious_confidence']],
+            'observables': [observable],
+            'valid_time': {
+                'start_time': cs_data['last_updated'],
+                'end_time': valid_time(cs_data['last_updated'],
+                                       observable['type'])
+            },
+            **VERDICT_DEFAULTS
+        }
+        return verdict
+
+    def extract(self, crowd_strike_data, observable, judgement_id=None):
+        verdict = self._verdict(crowd_strike_data, observable)
+        if judgement_id:
+            verdict['judgement_id'] = judgement_id
+        return verdict
