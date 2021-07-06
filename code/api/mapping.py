@@ -88,7 +88,10 @@ class Sighting:
                 'start_time': self._start_time(message)
             },
             'data': self._data_table(message),
-            'source_uri': self.sighting_source_uri(message),
+            'source_uri': self.sighting_source_uri(
+                f'_messageid = {message.get("_messageid")}',
+                message.get('_messagetime'),
+                int(message.get('_messagetime')) + 1),
             **SIGHTING_DEFAULTS
         }
 
@@ -98,13 +101,13 @@ class Sighting:
         return sighting
 
     @staticmethod
-    def sighting_source_uri(message):
+    def sighting_source_uri(query, start_time, end_time):
         url = source_uri()
         path = "ui/#/search/create"
         params = {
-            "query": f'_messageid = {message.get("_messageid")}',
-            "startTime": message.get('_messagetime'),
-            "endTime": int(message.get('_messagetime')) + 1
+            "query": query,
+            "startTime": start_time,
+            "endTime": end_time
         }
         return f'{url}{path}?{urlencode(params)}'
 
