@@ -200,13 +200,15 @@ def general_response_payload_for_sumo_api_request(
 
 @fixture
 def expected_relay_response(route, success_observe_body,
-                            success_deliberate_body):
+                            success_deliberate_body,
+                            success_refer_body):
     def _make_payload(state=None, messages_count=0):
         payload_to_route_match = {
             '/observe/observables': success_observe_body(state,
                                                          messages_count),
             '/deliberate/observables': success_deliberate_body(state,
-                                                               messages_count)
+                                                               messages_count),
+            '/refer/observables': success_refer_body
         }
         return payload_to_route_match[route]
     return _make_payload
@@ -242,6 +244,18 @@ def success_deliberate_body(verdict_base_payload):
         }
         return add_errors(payload, state, messages_count)
     return _make_body
+
+
+@fixture
+def success_refer_body():
+    return {'data': [{'categories': ['Search', 'SumoLogic'],
+                      'description': 'Search for this domain in the Sumo Logic'
+                                     ' console',
+                      'id': 'ref-sumo-search-domain-cisco.com',
+                      'title': 'Search for this domain',
+                      'url': 'https://service.us2.sumologic.com/ui/#/search'
+                             '/create?query=cisco.com&startTime=-30d'
+                             '&endTime=now'}]}
 
 
 def add_errors(payload, state, messages_count, route=''):

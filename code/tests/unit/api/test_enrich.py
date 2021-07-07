@@ -16,6 +16,7 @@ from tests.unit.conftest import (
 def routes():
     yield '/observe/observables'
     yield '/deliberate/observables'
+    yield '/refer/observables'
 
 
 @fixture(scope='module', params=routes(), ids=lambda route: f'POST {route}')
@@ -135,13 +136,14 @@ def test_enrich_call_status_gathering_results(
 @patch('requests.get')
 def test_enrich_call_with_ssl_error(mock_get, mock_request, api_response,
                                     mock_exception_for_ssl_error,
-                                    client, route, valid_jwt, valid_json,
+                                    client, valid_jwt, valid_json,
                                     ssl_error_expected_relay_response):
 
     mock_get.return_value = api_response(EXPECTED_RESPONSE_OF_JWKS_ENDPOINT)
     mock_request.side_effect = SSLError(mock_exception_for_ssl_error)
 
-    response = client.post(route, headers=get_headers(valid_jwt()),
+    response = client.post('/observe/observables',
+                           headers=get_headers(valid_jwt()),
                            json=valid_json)
     assert response.status_code == HTTPStatus.OK
     assert response.json == ssl_error_expected_relay_response
@@ -151,14 +153,15 @@ def test_enrich_call_with_ssl_error(mock_get, mock_request, api_response,
 @patch('requests.get')
 def test_enrich_call_with_connection_error(
         mock_get, mock_request, api_response,
-        client, route, valid_jwt, valid_json,
+        client, valid_jwt, valid_json,
         connection_error_expected_relay_response):
 
     mock_get.return_value = api_response(EXPECTED_RESPONSE_OF_JWKS_ENDPOINT)
     for error in (ConnectionError, MissingSchema):
         mock_request.side_effect = error()
 
-        response = client.post(route, headers=get_headers(valid_jwt()),
+        response = client.post('/observe/observables',
+                               headers=get_headers(valid_jwt()),
                                json=valid_json)
 
         assert response.status_code == HTTPStatus.OK
@@ -169,7 +172,7 @@ def test_enrich_call_with_connection_error(
 @patch('requests.get')
 def test_enrich_call_with_bad_request_sumo_logic_error(
         mock_get, mock_request, api_response,
-        client, route, valid_jwt, valid_json,
+        client, valid_jwt, valid_json,
         bad_request_expected_relay_response):
 
     mock_get.return_value = api_response(EXPECTED_RESPONSE_OF_JWKS_ENDPOINT)
@@ -177,7 +180,8 @@ def test_enrich_call_with_bad_request_sumo_logic_error(
         text='Bad request to Sumo Logic',
         status_code=HTTPStatus.BAD_REQUEST)
 
-    response = client.post(route, headers=get_headers(valid_jwt()),
+    response = client.post('/observe/observables',
+                           headers=get_headers(valid_jwt()),
                            json=valid_json)
     assert response.status_code == HTTPStatus.OK
     assert response.json == bad_request_expected_relay_response

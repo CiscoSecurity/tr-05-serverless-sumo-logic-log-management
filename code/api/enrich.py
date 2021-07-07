@@ -1,9 +1,9 @@
 from functools import partial
 
-from flask import Blueprint, g
+from flask import Blueprint, g, current_app
 
 from api.schemas import ObservableSchema
-from api.utils import get_json, get_credentials, jsonify_result
+from api.utils import get_json, get_credentials, jsonify_result, jsonify_data
 from api.mapping import Sighting, Judgement, Verdict
 from api.client import SumoLogicClient
 
@@ -65,3 +65,32 @@ def deliberate_observables():
             g.verdicts.append(verdict)
 
     return jsonify_result()
+
+
+@enrich_api.route('/refer/observables', methods=['POST'])
+def refer_observables():
+    _ = get_credentials()
+    observables = get_observables()
+
+    obs_types_map = current_app.config['HUMAN_READABLE_OBSERVABLE_TYPES']
+    relay_output = [
+        {
+            'id': (
+                f'ref-sumo-search-{observable["type"].replace("_", "-")}'
+                f'-{observable["value"]}'
+            ),
+            'title': (
+                f'Search for this {obs_types_map.get(observable["type"])}'
+            ),
+            'description': (
+                f'Search for this {obs_types_map.get(observable["type"])}'
+                ' in the Sumo Logic console'
+            ),
+            'url': Sighting.sighting_source_uri(observable['value'],
+                                                '-30d',
+                                                'now'),
+            'categories': ['Search', 'SumoLogic']
+        }
+        for observable in observables
+    ]
+    return jsonify_data(relay_output)
