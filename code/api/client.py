@@ -6,6 +6,7 @@ from requests.exceptions import SSLError, ConnectionError, MissingSchema
 from flask import current_app
 
 from api.errors import (
+    AuthorizationError,
     SumoLogicSSLError,
     SumoLogicConnectionError,
     CriticalSumoLogicResponseError,
@@ -14,6 +15,9 @@ from api.errors import (
     SearchJobDidNotFinishWarning,
     MoreMessagesAvailableWarning)
 from api.utils import add_error
+
+
+INVALID_CREDENTIALS = 'wrong access_id or access_key'
 
 
 class SumoLogicClient:
@@ -56,6 +60,8 @@ class SumoLogicClient:
             raise SumoLogicSSLError(error)
         except (ConnectionError, MissingSchema):
             raise SumoLogicConnectionError(self._url)
+        except UnicodeEncodeError:
+            raise AuthorizationError(INVALID_CREDENTIALS)
 
         if response.ok:
             return data_extractor(response)
