@@ -248,7 +248,8 @@ def success_deliberate_body(verdict_base_payload):
 
 @fixture
 def success_refer_body():
-    return {'data': [{'description': 'Search for this domain in the Sumo Logic'
+    return {'data': [{'categories': ['Search', 'SumoLogic'],
+                      'description': 'Search for this domain in the Sumo Logic'
                                      ' console',
                       'id': 'ref-sumo-search-domain-cisco.com',
                       'title': 'Search for this domain',

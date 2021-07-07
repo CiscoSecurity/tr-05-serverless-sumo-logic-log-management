@@ -88,7 +88,8 @@ def refer_observables():
             ),
             'url': Sighting.sighting_source_uri(observable['value'],
                                                 '-30d',
-                                                'now')
+                                                'now'),
+            'categories': ['Search', 'SumoLogic']
         }
         for observable in observables
     ]
