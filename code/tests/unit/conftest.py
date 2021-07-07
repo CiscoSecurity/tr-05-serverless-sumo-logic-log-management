@@ -361,6 +361,10 @@ def sighting_base_payload():
                                            '(local4) containing the '
                                            'observable',
                       'source': 'Sumo Logic',
+                      'source_uri': 'https://service.us2.sumologic.com/ui/#'
+                                    '/search/create?query=_messageid+%3D+70268'
+                                    '6314684941315&startTime=1619720153842'
+                                    '&endTime=1619720153843',
                       'title': 'Log message from last 30 days in Sumo Logic '
                                'contains observable',
                       'type': 'sighting'}]}
@@ -386,8 +390,8 @@ def judgement_base_payload():
                                                'source_name': 'CrowdStrike'}],
                       'id': 'transient:judgement-43c16a5e-cb1c-5bca-a26f'
                             '-4f9ec202a7ee',
-                      'observables': [{'type': 'domain',
-                                       'value': 'cisco.com'}],
+                      'observable': {'type': 'domain',
+                                     'value': 'cisco.com'},
                       'priority': 85,
                       'reason': 'Found in CrowdStrike '
                                 'Intelligence',
@@ -395,7 +399,7 @@ def judgement_base_payload():
                       'schema_version': '1.1.6',
                       'severity': 'High',
                       'source': 'Sumo Logic',
-                      'source_uri': 'https://api.us2.sumologic.com/api/v1/',
+                      'source_uri': 'https://service.us2.sumologic.com/',
                       'tlp': 'amber',
                       'type': 'judgement',
                       'valid_time': {'end_time': 1622121860,
@@ -409,8 +413,8 @@ def verdict_base_payload():
                       'disposition_name': 'Malicious',
                       'judgement_id': 'transient:judgement-43c16a5e-cb1c-5bca'
                                       '-a26f-4f9ec202a7ee',
-                      'observables': [{'type': 'domain',
-                                       'value': 'cisco.com'}],
+                      'observable': {'type': 'domain',
+                                     'value': 'cisco.com'},
                       'type': 'verdict',
                       'valid_time': {'end_time': 1622121860,
                                      'start_time': 1619529860}}]}

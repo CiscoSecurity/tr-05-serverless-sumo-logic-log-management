@@ -2,6 +2,7 @@ from datetime import datetime, timezone
 from uuid import uuid5, NAMESPACE_X500
 
 from flask import current_app
+from urllib.parse import urlencode
 
 SIGHTING = 'sighting'
 JUDGEMENT = 'judgement'
@@ -67,6 +68,11 @@ def valid_time(start_time, observable_type):
     return datetime(2525, 1, 1)
 
 
+def source_uri():
+    sumo_endpoint = current_app.config['SUMO_API_ENDPOINT']
+    return sumo_endpoint.split('api/v1')[0].replace('api', 'service')
+
+
 class Sighting:
     def _sighting(self, message, observable):
         sighting = {
@@ -82,6 +88,7 @@ class Sighting:
                 'start_time': self._start_time(message)
             },
             'data': self._data_table(message),
+            'source_uri': self.sighting_source_uri(message),
             **SIGHTING_DEFAULTS
         }
 
@@ -89,6 +96,17 @@ class Sighting:
             sighting['relations'] = self._relation(message)
 
         return sighting
+
+    @staticmethod
+    def sighting_source_uri(message):
+        url = source_uri()
+        path = "ui/#/search/create"
+        params = {
+            "query": f'_messageid = {message.get("_messageid")}',
+            "startTime": message.get('_messagetime'),
+            "endTime": int(message.get('_messagetime')) + 1
+        }
+        return f'{url}{path}?{urlencode(params)}'
 
     @staticmethod
     def _start_time(message):
@@ -142,12 +160,12 @@ class Sighting:
         return sighting
 
 
-class Judgement():
+class Judgement:
     def _judgement(self, cs_data, observable):
         judgement = {
             **DISPOSITION_MAP[cs_data['malicious_confidence']],
             'id': self._transient_id(cs_data, observable),
-            'observables': [observable],
+            'observable': observable,
             'severity': SEVERITY_MAP[cs_data['malicious_confidence']],
             'valid_time': {
                 'start_time': cs_data['last_updated'],
@@ -155,7 +173,7 @@ class Judgement():
                                        observable['type'])
             },
             'external_references': self._external_references(cs_data),
-            'source_uri': current_app.config['SUMO_API_ENDPOINT'],
+            'source_uri': source_uri(),
             **JUDGEMENT_DEFAULTS,
         }
         return judgement
@@ -186,11 +204,12 @@ class Judgement():
         return judgement
 
 
-class Verdict():
-    def _verdict(self, cs_data, observable):
+class Verdict:
+    @staticmethod
+    def _verdict(cs_data, observable):
         verdict = {
             **DISPOSITION_MAP[cs_data['malicious_confidence']],
-            'observables': [observable],
+            'observable': observable,
             'valid_time': {
                 'start_time': cs_data['last_updated'],
                 'end_time': valid_time(cs_data['last_updated'],
