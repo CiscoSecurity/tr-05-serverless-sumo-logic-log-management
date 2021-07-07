@@ -91,7 +91,8 @@ class Sighting:
             'source_uri': self.sighting_source_uri(
                 f'_messageid = {message.get("_messageid")}',
                 message.get('_messagetime'),
-                int(message.get('_messagetime')) + 1),
+                int(message.get('_messagetime')) + 1
+            ),
             **SIGHTING_DEFAULTS
         }
 
