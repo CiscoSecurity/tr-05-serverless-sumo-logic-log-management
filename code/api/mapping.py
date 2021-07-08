@@ -64,8 +64,19 @@ SEVERITY_MAP = {
 
 def valid_time(start_time, observable_type):
     if observable_type in ['domain', 'email', 'ip', 'ipv6', 'url']:
-        return start_time + 30 * 24 * 60 * 60
-    return datetime(2525, 1, 1)
+        time = start_time + 30 * 24 * 60 * 60
+        return time_format(time)
+    return time_format(datetime(2525, 1, 1, tzinfo=timezone.utc))
+
+
+def time_format(time):
+    """
+    Converts seconds or datetime object to needed format
+    e.g. 2525-01-01T00:00:00.000+00:00
+    """
+    if not isinstance(time, datetime):
+        time = datetime.fromtimestamp(time, timezone.utc)
+    return f'{time.isoformat(timespec="milliseconds")}'
 
 
 def source_uri():
@@ -115,8 +126,7 @@ class Sighting:
     @staticmethod
     def _start_time(message):
         message_timestamp = int(message.get('_messagetime')) / 10 ** 3
-        message_date = datetime.fromtimestamp(message_timestamp, timezone.utc)
-        return message_date.isoformat(timespec='milliseconds')
+        return time_format(message_timestamp)
 
     @staticmethod
     def _count(message):
@@ -172,7 +182,7 @@ class Judgement:
             'observable': observable,
             'severity': SEVERITY_MAP[cs_data['malicious_confidence']],
             'valid_time': {
-                'start_time': cs_data['last_updated'],
+                'start_time': time_format(cs_data['last_updated']),
                 'end_time': valid_time(cs_data['last_updated'],
                                        observable['type'])
             },
@@ -200,7 +210,7 @@ class Judgement:
             "disposition"]
         seeds = f'{SOURCE}|{observable["value"]}|{disposition}|' \
                 f'{cs_data["last_updated"]}'
-        judgement_id = f'transient:judgement-{uuid5(NAMESPACE_X500, seeds)}'
+        judgement_id = f'transient:{JUDGEMENT}-{uuid5(NAMESPACE_X500, seeds)}'
         return judgement_id
 
     def extract(self, crowd_strike_data, observable):
@@ -215,7 +225,7 @@ class Verdict:
             **DISPOSITION_MAP[cs_data['malicious_confidence']],
             'observable': observable,
             'valid_time': {
-                'start_time': cs_data['last_updated'],
+                'start_time': time_format(cs_data['last_updated']),
                 'end_time': valid_time(cs_data['last_updated'],
                                        observable['type'])
             },
