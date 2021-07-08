@@ -87,9 +87,7 @@ This application was developed and tested under Python version 3.9.
   - Returns a list per each of the following CTIM entities (if any extracted):
     - `Verdict`,
     - `Judgment`,
-    - `Indicator`,
-    - `Sighting`,
-    - `Relationship`.
+    - `Sighting`.
 
 - `POST /refer/observables`
   - Accepts a list of observables and filters out unsupported ones.
