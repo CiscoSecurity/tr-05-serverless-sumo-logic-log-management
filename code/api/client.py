@@ -2,7 +2,12 @@ import time
 import json
 
 import requests
-from requests.exceptions import SSLError, ConnectionError, MissingSchema
+from requests.exceptions import (
+    SSLError,
+    ConnectionError,
+    MissingSchema,
+    InvalidSchema
+)
 from flask import current_app
 
 from api.errors import (
@@ -13,7 +18,8 @@ from api.errors import (
     SearchJobWrongStateError,
     SearchJobNotStartedError,
     SearchJobDidNotFinishWarning,
-    MoreMessagesAvailableWarning)
+    MoreMessagesAvailableWarning
+)
 from api.utils import add_error
 
 
@@ -58,7 +64,7 @@ class SumoLogicClient:
                                         headers=self._headers)
         except SSLError as error:
             raise SumoLogicSSLError(error)
-        except (ConnectionError, MissingSchema):
+        except (ConnectionError, MissingSchema, InvalidSchema):
             raise SumoLogicConnectionError(self._url)
         except UnicodeEncodeError:
             raise AuthorizationError(INVALID_CREDENTIALS)
