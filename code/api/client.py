@@ -2,7 +2,12 @@ import time
 import json
 
 import requests
-from requests.exceptions import SSLError, ConnectionError, MissingSchema, InvalidSchema
+from requests.exceptions import (
+    SSLError,
+    ConnectionError,
+    MissingSchema,
+    InvalidSchema
+)
 from flask import current_app
 
 from api.errors import (
@@ -13,7 +18,8 @@ from api.errors import (
     SearchJobWrongStateError,
     SearchJobNotStartedError,
     SearchJobDidNotFinishWarning,
-    MoreMessagesAvailableWarning)
+    MoreMessagesAvailableWarning
+)
 from api.utils import add_error
 
 
