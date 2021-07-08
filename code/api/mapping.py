@@ -64,7 +64,7 @@ SEVERITY_MAP = {
 
 def valid_time(start_time, observable_type):
     if observable_type in ['domain', 'email', 'ip', 'ipv6', 'url']:
-        time = start_time + 30 * 24 * 60 * 60
+        time = start_time + current_app.config['THIRTY_DAYS_IN_SECONDS']
         return time_format(time)
     return time_format(datetime(2525, 1, 1, tzinfo=timezone.utc))
 
@@ -125,7 +125,7 @@ class Sighting:
 
     @staticmethod
     def _start_time(message):
-        message_timestamp = int(message.get('_messagetime')) / 10 ** 3
+        message_timestamp = int(message.get('_messagetime')) / 10**3
         return time_format(message_timestamp)
 
     @staticmethod
