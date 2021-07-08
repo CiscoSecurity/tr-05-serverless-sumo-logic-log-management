@@ -76,6 +76,16 @@ This application was developed and tested under Python version 3.9.
   original credentials.
   - Authenticates to the underlying external service to check that the provided
   credentials are valid and the service is available at the moment.
+    
+- `POST /deliberate/observables`
+  - Accepts a list of observables and filters out unsupported ones.
+  - Verifies the Authorization Bearer JWT and decodes it to restore the
+  original credentials.
+  - Makes a series of requests to the underlying external service to query for
+  some cyber threat intelligence data on each supported observable.
+  - Maps the fetched data into appropriate CTIM entities.
+  - Returns a list per each of the following CTIM entities (if any extracted):
+    - `Verdict`.
 
 - `POST /observe/observables`
   - Accepts a list of observables and filters out unsupported ones.
