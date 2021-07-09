@@ -77,8 +77,8 @@ class SumoLogicClient:
     def get_messages(self, observable):
         search_type = 'Sumo Logic'
         search_query = f'"{observable}" | limit 101'
-        # 30 days in milliseconds
-        search_time_range = 30 * 24 * 60 * 60 * 10**3
+        search_time_range = (current_app.config['THIRTY_DAYS_IN_SECONDS']
+                             * 10**3)
         first_check_request_delay = 0
         check_request_delay = 3
         messages = self._get_data(observable, search_type,
@@ -91,8 +91,8 @@ class SumoLogicClient:
         search_type = 'Crowd Strike'
         search_query = f'| limit 1 | "{observable}" as observable | lookup ' \
                        'raw from sumo://threat/cs on threat=observable'
-        # 15 minutes in milliseconds
-        search_time_range = 15 * 60 * 10**3
+        search_time_range = (current_app.config['FIFTEEN_MINS_IN_SECONDS']
+                             * 10**3)
         first_check_request_delay = 1
         check_request_delay = 5
         messages = self._get_data(observable, search_type,

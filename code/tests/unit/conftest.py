@@ -416,8 +416,10 @@ def judgement_base_payload():
                       'source_uri': 'https://service.us2.sumologic.com/',
                       'tlp': 'amber',
                       'type': 'judgement',
-                      'valid_time': {'end_time': 1622121860,
-                                     'start_time': 1619529860}}]}
+                      'valid_time': {'end_time': '2021-05-27T13:24:20'
+                                                 '.000+00:00',
+                                     'start_time': '2021-04-27T13:24:20'
+                                                   '.000+00:00'}}]}
 
 
 @fixture
@@ -430,8 +432,10 @@ def verdict_base_payload():
                       'observable': {'type': 'domain',
                                      'value': 'cisco.com'},
                       'type': 'verdict',
-                      'valid_time': {'end_time': 1622121860,
-                                     'start_time': 1619529860}}]}
+                      'valid_time': {'end_time': '2021-05-27T13:24:20'
+                                                 '.000+00:00',
+                                     'start_time': '2021-04-27T13:24:20'
+                                                   '.000+00:00'}}]}
 
 
 @fixture(scope='module')

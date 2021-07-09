@@ -50,3 +50,6 @@ class Config:
         'user': 'user',
         'user_agent': 'user agent',
     }
+
+    THIRTY_DAYS_IN_SECONDS = 30 * 24 * 60 * 60
+    FIFTEEN_MINS_IN_SECONDS = 15 * 60
