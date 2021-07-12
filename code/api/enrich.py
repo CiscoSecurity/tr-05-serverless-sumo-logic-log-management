@@ -80,11 +80,11 @@ def refer_observables():
                 f'-{observable["value"]}'
             ),
             'title': (
-                f'Search for this '
+                'Search for this '
                 f'{obs_types_map.get(observable["type"], observable["type"])}'
             ),
             'description': (
-                f'Search for this '
+                'Search for this '
                 f'{obs_types_map.get(observable["type"], observable["type"])}'
                 ' in the Sumo Logic console'
             ),
