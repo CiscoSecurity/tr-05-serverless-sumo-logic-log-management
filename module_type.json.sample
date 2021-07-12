@@ -3,7 +3,7 @@
     "default_name": "Sumo Logic",
     "short_description": "**Sumo Logic** is a cloud-based machine data analytics company focusing on security, operations and BI usecases",
     "description": "Sumo Logic is a cloud-based machine data analytics company focusing on security, operations and BI usecases. It provides log management and analytics services that leverage machine-generated big data to deliver real-time IT insights.",
-    "tips": "When configuring this integration, you must first generate Access Keys in your Sumo Logic account\n\n1. Login to Sumo Logic, click **Administration**, next click **Security**, choose **Access Key** tab and then **+ Add Access Key**. Complete the **Add Sumo Logic Integration Module** form:\n    - **Module Name** - Leave the default name or enter a name that is meaningful to you.\n   - **Sumo Logic API endpoint** - Enter Sumo Logic API endpoint. You can find details here - https://api.us2.sumologic.com/docs/\n   - **Access ID** - Enter Sumo Logic Access ID\n   - **Access Key** - Enter Sumo Logic Access Key\n9. Click **Save** to complete the Sumo Logic module configuration. ",
+    "tips": "When configuring this integration, you must first generate Access Keys in your Sumo Logic account\n\n1. Login to Sumo Logic, click **Administration**, next click **Security**, choose **Access Key** tab and then **+ Add Access Key**. Complete the **Add Sumo Logic Integration Module** form:\n    - **Module Name** - Leave the default name or enter a name that is meaningful to you.\n   - **Host** - Enter host name of Sumo Logic API endpoint e.g. `api.us2.sumologic.com`. Full endpoints list you can find here - https://api.us2.sumologic.com/docs/\n   - **Access ID** - Enter Sumo Logic Access ID\n   - **Access Key** - Enter Sumo Logic Access Key\n9. Click **Save** to complete the Sumo Logic module configuration. ",
     "external_references": [
         {
             "label": "Official website",
@@ -12,10 +12,48 @@
     ],
     "configuration_spec": [
         {
-            "key": "custom_sumo_api_endpoint",
+            "key": "custom_host",
             "required": true,
-            "type": "string",
-            "label": "Sumo Logic API endpoint"
+            "type": "options",
+            "label": "Host",
+            "options": [
+                {
+                    "value": "api.au.sumologic.com",
+                    "label": "api.au.sumologic.com"
+                },
+                {
+                    "value": "api.ca.sumologic.com",
+                    "label": "api.ca.sumologic.com"
+                },
+                {
+                    "value": "api.de.sumologic.com",
+                    "label": "api.de.sumologic.com"
+                },
+                {
+                    "value": "api.eu.sumologic.com",
+                    "label": "api.eu.sumologic.com"
+                },
+                {
+                    "value": "api.fed.sumologic.com",
+                    "label": "api.fed.sumologic.com"
+                },
+                {
+                    "value": "api.in.sumologic.com",
+                    "label": "api.in.sumologic.com"
+                },
+                {
+                    "value": "api.jp.sumologic.com",
+                    "label": "api.jp.sumologic.com"
+                },
+                {
+                    "value": "api.sumologic.com",
+                    "label": "api.sumologic.com"
+                },
+                {
+                    "value": "api.us2.sumologic.com",
+                    "label": "api.us2.sumologic.com"
+                }
+            ]
         },
         {
             "key": "custom_access_id",

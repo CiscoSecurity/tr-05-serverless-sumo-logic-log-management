@@ -44,7 +44,8 @@ class SumoLogicClient:
 
     @property
     def _url(self):
-        return self._credentials.get('sumo_api_endpoint').rstrip('/')
+        url = current_app.config['SUMO_API_ENDPOINT']
+        return url.format(host=self._credentials.get('host'))
 
     @property
     def _auth(self):
