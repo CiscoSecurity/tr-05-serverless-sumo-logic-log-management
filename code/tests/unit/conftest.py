@@ -300,10 +300,12 @@ def add_errors(payload, state, messages_count, route=''):
     if messages_count > 100:
         payload['errors'].append(
             {
-                'code': 'more messages are available',
+                'code': 'too-many-messages-warning',
                 'message': 'There are more messages in Sumo Logic '
                            'for cisco.com '
-                           'than can be displayed in Threat Response.',
+                           'than can be displayed in Threat Response. '
+                           'Login to the Sumo Logic console to see '
+                           'all messages.',
                 'type': 'warning'
             }
         )
