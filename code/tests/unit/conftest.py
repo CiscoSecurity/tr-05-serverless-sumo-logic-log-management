@@ -254,7 +254,7 @@ def success_refer_body():
                       'id': 'ref-sumo-search-domain-cisco.com',
                       'title': 'Search for this domain',
                       'url': 'https://service.us2.sumologic.com/ui/#/search'
-                             '/create?query=cisco.com&startTime=-30d'
+                             '/create?query=%22cisco.com%22&startTime=-30d'
                              '&endTime=now'}]}
 
 
