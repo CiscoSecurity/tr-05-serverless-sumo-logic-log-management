@@ -86,7 +86,7 @@ def refer_observables():
                 f'Search for this {obs_types_map.get(observable["type"])}'
                 ' in the Sumo Logic console'
             ),
-            'url': Sighting.sighting_source_uri(observable['value'],
+            'url': Sighting.sighting_source_uri(f'"{observable["value"]}"',
                                                 '-30d',
                                                 'now'),
             'categories': ['Search', 'SumoLogic']
