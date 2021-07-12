@@ -122,7 +122,7 @@ Each response from the Sumo Logic API for the supported observables generates th
   
   | malicious_confidence |  Severity |
   |----------------------|-----------|
-  | high                 |  None     |
+  | high                 |  High     |
   | medium               |  Medium   |
   | low                  |  Low      |
   | unverified           |  Unknown  |
