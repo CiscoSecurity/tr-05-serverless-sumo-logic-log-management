@@ -254,7 +254,7 @@ def success_refer_body():
                       'id': 'ref-sumo-search-domain-cisco.com',
                       'title': 'Search for this domain',
                       'url': 'https://service.us2.sumologic.com/ui/#/search'
-                             '/create?query=cisco.com&startTime=-30d'
+                             '/create?query=%22cisco.com%22&startTime=-30d'
                              '&endTime=now'}]}
 
 
@@ -300,10 +300,12 @@ def add_errors(payload, state, messages_count, route=''):
     if messages_count > 100:
         payload['errors'].append(
             {
-                'code': 'more messages are available',
+                'code': 'too-many-messages-warning',
                 'message': 'There are more messages in Sumo Logic '
                            'for cisco.com '
-                           'than can be displayed in Threat Response.',
+                           'than can be displayed in Threat Response. '
+                           'Login to the Sumo Logic console to see '
+                           'all messages.',
                 'type': 'warning'
             }
         )

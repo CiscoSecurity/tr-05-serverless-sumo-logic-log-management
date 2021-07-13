@@ -102,9 +102,10 @@ class SearchJobDidNotFinishWarning(TRFormattedError):
 class MoreMessagesAvailableWarning(TRFormattedError):
     def __init__(self, observable):
         super().__init__(
-            'more messages are available',
+            'too-many-messages-warning',
             f'There are more messages in Sumo Logic for {observable}'
-            ' than can be displayed in Threat Response.',
+            ' than can be displayed in Threat Response. Login to the '
+            'Sumo Logic console to see all messages.',
             type_='warning'
         )
 
