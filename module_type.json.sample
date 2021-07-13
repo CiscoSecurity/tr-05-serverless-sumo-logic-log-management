@@ -12,10 +12,48 @@
     ],
     "configuration_spec": [
         {
-            "key": "custom_sumo_api_endpoint",
+            "key": "custom_host",
             "required": true,
-            "type": "string",
-            "label": "Sumo Logic API endpoint"
+            "type": "options",
+            "label": "Host",
+            "options": [
+                {
+                    "value": "api.au.sumologic.com",
+                    "label": "api.au.sumologic.com"
+                },
+                {
+                    "value": "api.ca.sumologic.com",
+                    "label": "api.ca.sumologic.com"
+                },
+                {
+                    "value": "api.de.sumologic.com",
+                    "label": "api.de.sumologic.com"
+                },
+                {
+                    "value": "api.eu.sumologic.com",
+                    "label": "api.eu.sumologic.com"
+                },
+                {
+                    "value": "api.fed.sumologic.com",
+                    "label": "api.fed.sumologic.com"
+                },
+                {
+                    "value": "api.in.sumologic.com",
+                    "label": "api.in.sumologic.com"
+                },
+                {
+                    "value": "api.jp.sumologic.com",
+                    "label": "api.jp.sumologic.com"
+                },
+                {
+                    "value": "api.sumologic.com",
+                    "label": "api.sumologic.com"
+                },
+                {
+                    "value": "api.us2.sumologic.com",
+                    "label": "api.us2.sumologic.com"
+                }
+            ]
         },
         {
             "key": "custom_access_id",

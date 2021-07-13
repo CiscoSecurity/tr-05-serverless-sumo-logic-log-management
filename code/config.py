@@ -10,6 +10,8 @@ class Config:
 
     CTR_ENTITIES_LIMIT_DEFAULT = 100
 
+    SUMO_API_ENDPOINT = 'https://{host}/api/v1'
+
     HUMAN_READABLE_OBSERVABLE_TYPES = {
         'certificate_common_name': 'certificate common name',
         'certificate_issuer': 'certificate issuer',

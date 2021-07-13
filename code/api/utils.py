@@ -94,12 +94,12 @@ def get_credentials():
         payload = jwt.decode(
             token, key=key, algorithms=['RS256'], audience=[aud.rstrip('/')])
 
-        assert 'sumo_api_endpoint' in payload
+        assert 'host' in payload
         assert 'access_id' in payload
         assert 'access_key' in payload
 
         set_entities_limit(payload)
-        current_app.config['SUMO_API_ENDPOINT'] = payload['sumo_api_endpoint']
+        current_app.config['HOST'] = payload['host']
         return payload
     except tuple(expected_errors) as error:
         message = expected_errors[error.__class__]
