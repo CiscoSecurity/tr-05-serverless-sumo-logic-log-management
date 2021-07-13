@@ -80,8 +80,8 @@ def time_format(time):
 
 
 def source_uri():
-    sumo_endpoint = current_app.config['SUMO_API_ENDPOINT']
-    return sumo_endpoint.split('api/v1')[0].replace('api', 'service')
+    host = current_app.config['HOST']
+    return f'https://{host.replace("api", "service")}/'
 
 
 class Sighting:
@@ -115,11 +115,11 @@ class Sighting:
     @staticmethod
     def sighting_source_uri(query, start_time, end_time):
         url = source_uri()
-        path = "ui/#/search/create"
+        path = 'ui/#/search/create'
         params = {
-            "query": query,
-            "startTime": start_time,
-            "endTime": end_time
+            'query': query,
+            'startTime': start_time,
+            'endTime': end_time
         }
         return f'{url}{path}?{urlencode(params)}'
 
@@ -164,7 +164,7 @@ class Sighting:
 
         for key, value in message.items():
             if not key.startswith('_') and value:
-                data['columns'].append({"name": key, "type": "string"})
+                data['columns'].append({'name': key, 'type': 'string'})
                 data['rows'][0].append(value)
 
         return data

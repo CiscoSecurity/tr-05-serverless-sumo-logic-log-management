@@ -32,7 +32,7 @@ def valid_jwt(client):
     def _make_jwt(
             access_id='some_id',
             access_key='some_key',
-            sumo_api_endpoint='https://api.us2.sumologic.com/api/v1/',
+            host='api.us2.sumologic.com',
             jwks_host='visibility.amp.cisco.com',
             aud='http://localhost',
             kid='02B1174234C29F8EFB69911438F597FF3FFEE6B7',
@@ -42,7 +42,7 @@ def valid_jwt(client):
         payload = {
             'access_id': access_id,
             'access_key': access_key,
-            'sumo_api_endpoint': sumo_api_endpoint,
+            'host': host,
             'jwks_host': jwks_host,
             'aud': aud,
         }
