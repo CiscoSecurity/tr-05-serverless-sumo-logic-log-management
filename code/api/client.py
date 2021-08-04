@@ -6,7 +6,8 @@ from requests.exceptions import (
     SSLError,
     ConnectionError,
     MissingSchema,
-    InvalidSchema
+    InvalidSchema,
+    InvalidURL
 )
 from flask import current_app
 
@@ -65,7 +66,7 @@ class SumoLogicClient:
                                         headers=self._headers)
         except SSLError as error:
             raise SumoLogicSSLError(error)
-        except (ConnectionError, MissingSchema, InvalidSchema):
+        except (ConnectionError, MissingSchema, InvalidSchema, InvalidURL):
             raise SumoLogicConnectionError(self._url)
         except UnicodeEncodeError:
             raise AuthorizationError(INVALID_CREDENTIALS)
