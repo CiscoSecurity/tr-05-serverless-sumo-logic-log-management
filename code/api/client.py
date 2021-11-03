@@ -37,7 +37,7 @@ class SumoLogicClient:
     def __init__(self, credentials):
         self._credentials = credentials
         self._headers = {
-            'user-agent': current_app.config['USER_AGENT']
+            'User-Agent': current_app.config['USER_AGENT']
         }
         self._entities_limit = current_app.config['CTR_ENTITIES_LIMIT']
         self._entities_limit_default = current_app.config[
