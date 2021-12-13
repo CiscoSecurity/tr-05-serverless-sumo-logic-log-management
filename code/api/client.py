@@ -1,5 +1,6 @@
 import time
 import json
+from http import HTTPStatus
 
 import requests
 from requests.exceptions import (
@@ -12,7 +13,6 @@ from requests.exceptions import (
 from flask import current_app
 
 from api.errors import (
-    AuthorizationError,
     SumoLogicSSLError,
     SumoLogicConnectionError,
     CriticalSumoLogicResponseError,
@@ -22,9 +22,6 @@ from api.errors import (
     MoreMessagesAvailableWarning
 )
 from api.utils import add_error
-
-
-INVALID_CREDENTIALS = 'wrong access_id or access_key'
 
 
 class SumoLogicClient:
@@ -69,12 +66,14 @@ class SumoLogicClient:
         except (ConnectionError, MissingSchema, InvalidSchema, InvalidURL):
             raise SumoLogicConnectionError(self._url)
         except UnicodeEncodeError:
-            raise AuthorizationError(INVALID_CREDENTIALS)
+            raise CriticalSumoLogicResponseError(HTTPStatus.UNAUTHORIZED)
 
         if response.ok:
             return data_extractor(response)
 
-        raise CriticalSumoLogicResponseError(response)
+        raise CriticalSumoLogicResponseError(response.status_code,
+                                             response.text,
+                                             url)
 
     def get_messages(self, observable):
         search_type = 'Sumo Logic'

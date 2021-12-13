@@ -1,9 +1,12 @@
 from http import HTTPStatus
+from collections import defaultdict
 
 INVALID_ARGUMENT = 'invalid argument'
 UNKNOWN = 'unknown'
 AUTH_ERROR = 'authorization error'
 CONNECTION_ERROR = 'connection error'
+INVALID_CREDENTIALS = 'wrong access_id or access_key'
+URL_NOT_FOUND = 'URL {url} is not found'
 
 
 class TRFormattedError(Exception):
@@ -67,25 +70,17 @@ class CriticalSumoLogicResponseError(TRFormattedError):
     """
     https://api.us2.sumologic.com/docs/#section/Getting-Started/Status-Codes
     """
-    def __init__(self, response):
-        possible_statuses = (
-            HTTPStatus.UNAUTHORIZED,
-            HTTPStatus.FORBIDDEN,
-            HTTPStatus.NOT_FOUND,
-            HTTPStatus.METHOD_NOT_ALLOWED,
-            HTTPStatus.UNSUPPORTED_MEDIA_TYPE,
-            HTTPStatus.TOO_MANY_REQUESTS,
-            HTTPStatus.INTERNAL_SERVER_ERROR,
-            HTTPStatus.SERVICE_UNAVAILABLE,
-            HTTPStatus.BAD_REQUEST
-        )
-        status_code_map = {status: status.phrase
-                           for status
-                           in possible_statuses}
+    def __init__(self, status_code, response_text=None, url=None):
+        status_code_map = {
+            HTTPStatus.UNAUTHORIZED: INVALID_CREDENTIALS,
+            HTTPStatus.NOT_FOUND: URL_NOT_FOUND.format(url=url),
+        }
+        status_code_map = defaultdict(lambda: response_text, status_code_map)
 
         super().__init__(
-            status_code_map.get(response.status_code),
-            f'Unexpected response from SumoLogic: {response.text}'
+            HTTPStatus(status_code).phrase,
+            'Unexpected response from SumoLogic: '
+            f'{status_code_map[status_code]}'
         )
 
 
