@@ -93,7 +93,7 @@ class Sighting:
             'external_ids': [
                 message.get('_messageid')
             ],
-            'id': f'transient:{SIGHTING}-{uuid5(NAMESPACE_X500, message.get('_messageid'))}',
+            'id': f'transient:{SIGHTING}-{uuid5(NAMESPACE_X500, message.get("_messageid"))}',
             'observables': [observable],
             'observed_time': {
                 'start_time': self._start_time(message)
