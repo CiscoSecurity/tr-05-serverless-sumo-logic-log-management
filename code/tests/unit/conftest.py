@@ -359,7 +359,7 @@ def sighting_base_payload():
                                      'from 188.163.104.233/18488 '
                                      'to outside:24.141.139.103/80\n```',
                       'external_ids': ['702686314684941315'],
-                      'id': '702686314684941315',
+                      'id': 'transient:sighting-1335ed7f-b2c3-568b-a754-f05ad5c5c17e',
                       'internal': True,
                       'observables': [{'type': 'domain',
                                        'value': 'cisco.com'}],
