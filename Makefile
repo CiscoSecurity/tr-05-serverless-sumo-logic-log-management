@@ -1,4 +1,4 @@
-NAME_SHORT:="tr-05-serverless-sumo-logic-log-management"
+NAME_SHORT:="tr-05-sumo-logic-log-management"
 NAME:=ciscosecurity/$(NAME_SHORT)
 PORT:="9090"
 PLATFORM=--platform linux/amd64,linux/arm64
