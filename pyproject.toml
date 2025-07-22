@@ -1,0 +1,56 @@
+[tool.poetry]
+authors = ["Jyoti Verma <jyoverma@cisco.com>"]
+description = "Sumo Logic"
+name = "tr-05-sumo-logic-log-management"
+package-mode = false
+readme = "README.md"
+version = "1.0.6"
+
+[tool.poetry.dependencies]
+python = "^3.12"
+# ---------------------- #
+cryptography = "45.0.5"
+Flask = "^3.1.1"
+marshmallow = "^4.0.0"
+PyJWT = "2.10.1"
+requests = "^2.32.4"
+setuptools = "^78.1.1"
+urllib3 = "^2.5.0"
+
+[tool.poetry.group.dev.dependencies]
+black = "^25.1.0"
+coverage = "^7.9.2"
+flake8 = "^7.3.0"
+flake8-pyproject = "^1.2.3"
+mypy = "^1.16.1"
+pip-audit = "^2.9.0"
+pytest = "^8.4.1"
+types-requests = "^2.32.4.20250611"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.black]
+extend-exclude = "payloads_for_tests.py"
+line-length = 120
+skip-string-normalization = true
+target-version = ["py312"]
+
+[tool.flake8]
+exclude = ["*/payloads_for_tests.py"]
+ignore = [
+    "E203", # flake8 and PEP8 disagree on what is "right" here, black does a "right" thing
+    "W503", # line break before binary operator
+    "W504", # line break after binary operator
+]
+max_complexity = 15
+max-line-length = 120
+per-file-ignores = ["*/__init__.py:E402,F401"]
+
+[tool.isort]
+profile = "black"
+sections = ["FUTURE", "STDLIB", "THIRDPARTY", "FIRSTPARTY", "LOCALFOLDER"]
+
+[tool.mypy]
+ignore_missing_imports = true

@@ -1,9 +1,9 @@
-import json
+import tomllib
 
 
 class Config:
-    settings = json.load(open("container_settings.json", "r"))
-    VERSION = settings["VERSION"]
+    SETTINGS: dict = tomllib.load(open("../pyproject.toml", "rb"))["tool"]["poetry"]
+    VERSION = SETTINGS["version"]
 
     USER_AGENT = "SecureX Threat Response Integrations " "<tr-integrations-support@cisco.com>"
 

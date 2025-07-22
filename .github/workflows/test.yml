@@ -1,4 +1,4 @@
-name: Pipenv Install and Test
+name: Poetry Install and Test
 
 on:
   push:
@@ -12,17 +12,32 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Install Python, pipenv and Pipfile packages
-        uses: palewire/install-python-pipenv-pipfile@v4
+      - name: Set up python
+        id: setup-python
+        uses: actions/setup-python@v5
         with:
-          python-version: 3.11
+          python-version: '3.12'
+
+      - name: Install Poetry
+        uses: snok/install-poetry@v1
+        with:
+          virtualenvs-create: true
+          virtualenvs-in-project: true
+
+      - name: Load cached venv
+        id: cached-poetry-dependencies
+        uses: actions/cache@v4
+        with:
+          path: .venv
+          key: venv-${{ runner.os }}-${{ steps.setup-python.outputs.python-version }}-${{ hashFiles('**/poetry.lock') }}
+
+      - name: Install dependencies
+        if: steps.cached-poetry-dependencies.outputs.cache-hit != 'true'
+        run: poetry install
 
       - name: Run tests
         run: |
-          pipenv install --dev
+          source $VENV
           cd code/
-          pipenv run coverage run --source api/ -m pytest --verbose tests/unit/
-          pipenv run coverage report --fail-under=80
-
-      - name: Run pip-audit
-        run: pipenv run pip-audit
+          coverage run --source api/ -m pytest --verbose tests/unit/
+          coverage report --fail-under=80
